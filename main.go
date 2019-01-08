@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ckcclc-simplexity/gochannel/api"
-	"github.com/ckcclc-simplexity/gochannel/match"
+	"github.com/simplexity-ckcclc/gochannel/api"
+	"github.com/simplexity-ckcclc/gochannel/match"
 	"net/http"
 )
 
