@@ -2,9 +2,10 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-const DSN = "ckcclc:141421@/gochannel"
+const DSN = "ckcclc:141421@tcp(localhost:3306)/gochannel"
 
 type clickInfo struct {
 	AppKey   string
@@ -23,10 +24,11 @@ func clickHandler(c *gin.Context) {
 
 	db, err := open(DSN)
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusOK, INTERNAL_SERVER_ERROR)
 	}
 
 	if _, err := insertClickInfo(db, click); err != nil {
-		panic(err)
+		c.JSON(http.StatusOK, INTERNAL_SERVER_ERROR)
 	}
+	c.JSON(http.StatusOK, SUCCESS)
 }
