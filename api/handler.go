@@ -9,15 +9,13 @@ import (
 
 // The request responds to a url matching:  /ad/click?appKey=foo&deviceId=bar
 func clickHandler(c *gin.Context) {
-	appKey := c.Query("appKey")
-	deviceId := c.Query("deviceId")
-
-	click := clickInfo{
-		AppKey:   appKey,
-		DeviceId: deviceId,
+	var click clickInfo
+	if err := c.ShouldBind(&click); err != nil {
+		c.JSON(http.StatusBadRequest, REQUIRED_PARAMETER_MISSING)
+		return
 	}
 
-	appkeySig, ok := searchAppKeySig(appKey)
+	appkeySig, ok := searchAppKeySig(click.AppKey)
 	if !ok {
 		c.JSON(http.StatusOK, APP_KEY_NOT_FOUND)
 		return
@@ -25,7 +23,7 @@ func clickHandler(c *gin.Context) {
 	fmt.Println(appkeySig)
 
 	if err := insertClickInfo(common.DB, click); err != nil {
-		c.JSON(http.StatusOK, INTERNAL_SERVER_ERROR)
+		c.JSON(http.StatusInternalServerError, INTERNAL_SERVER_ERROR)
 		return
 	}
 

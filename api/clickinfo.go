@@ -3,8 +3,8 @@ package api
 import "database/sql"
 
 type clickInfo struct {
-	AppKey   string
-	DeviceId string
+	AppKey   string `form:"appKey" binding:"required"`
+	DeviceId string `form:"deviceId" binding:"required"`
 }
 
 func insertClickInfo(db *sql.DB, click clickInfo) error {
