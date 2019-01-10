@@ -3,11 +3,14 @@ package api
 import (
 	"database/sql"
 	"fmt"
+    "sync"
 )
 
-var (
-	appKeys = make(map[string]appKeySig)
-)
+var appKeySigHoler = struct {
+        sync.RWMutex
+        appKeys map[string]appKeySig
+    }{appKeys:  make(map[string]appKeySig)}
+
 
 type appKeySig struct {
 	appKey     string
@@ -24,12 +27,14 @@ func LoadAppKeySigs(db *sql.DB) error {
 	}
 	defer rows.Close()
 
+	appKeySigHoler.Lock()
+	defer appKeySigHoler.Unlock()
 	for rows.Next() {
 		err = rows.Scan(&appkeySig.appKey, &appkeySig.publicKey, &appkeySig.privateKey)
 		if err != nil {
 			fmt.Print(err.Error())
 		}
-		appKeys[appkeySig.appKey] = appkeySig
+		appKeySigHoler.appKeys[appkeySig.appKey] = appkeySig
 	}
 
 	err = rows.Err()
@@ -37,8 +42,16 @@ func LoadAppKeySigs(db *sql.DB) error {
 }
 
 func searchAppKeySig(appkey string) (appKeySig, bool) {
-	appkeySig, ok := appKeys[appkey]
+    appKeySigHoler.RLock()
+    defer appKeySigHoler.RUnlock()
+	appkeySig, ok := appKeySigHoler.appKeys[appkey]
 	return appkeySig, ok
+}
+
+func evictAppKeySig(appkey string) {
+    appKeySigHoler.Lock()
+    defer appKeySigHoler.Unlock()
+    delete(appKeySigHoler.appKeys, appkey)
 }
 
 func verify(encryptedUrl string, privateKey string, signature string) (bool, error) {
