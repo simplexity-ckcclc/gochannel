@@ -1,16 +1,11 @@
 package api
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	"net/http"
 )
-
-const DSN = "ckcclc:141421@tcp(localhost:3306)/gochannel"
-
-type clickInfo struct {
-	AppKey   string
-	DeviceId string
-}
 
 // The request responds to a url matching:  /ad/click?appKey=foo&deviceId=bar
 func clickHandler(c *gin.Context) {
@@ -22,13 +17,17 @@ func clickHandler(c *gin.Context) {
 		DeviceId: deviceId,
 	}
 
-	db, err := open(DSN)
-	if err != nil {
+	appkeySig, ok := searchAppKeySig(appKey)
+	if !ok {
+		c.JSON(http.StatusOK, APP_KEY_NOT_FOUND)
+		return
+	}
+	fmt.Println(appkeySig)
+
+	if err := insertClickInfo(common.DB, click); err != nil {
 		c.JSON(http.StatusOK, INTERNAL_SERVER_ERROR)
+		return
 	}
 
-	if _, err := insertClickInfo(db, click); err != nil {
-		c.JSON(http.StatusOK, INTERNAL_SERVER_ERROR)
-	}
 	c.JSON(http.StatusOK, SUCCESS)
 }

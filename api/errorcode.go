@@ -11,6 +11,10 @@ var (
 		Code:    10000,
 		Message: "Internal server error",
 	}
+	APP_KEY_NOT_FOUND = ErrorCode{
+		Code:    20000,
+		Message: "App key not found",
+	}
 )
 
 type ErrorCode struct {
