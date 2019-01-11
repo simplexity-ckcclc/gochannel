@@ -1,4 +1,4 @@
-package api
+package entity
 
 import (
 	"database/sql"
@@ -41,19 +41,19 @@ func LoadAppKeySigs(db *sql.DB) error {
 	return err
 }
 
-func searchAppKeySig(appkey string) (appKeySig, bool) {
+func SearchAppKeySig(appkey string) (appKeySig, bool) {
     appKeySigHoler.RLock()
     defer appKeySigHoler.RUnlock()
 	appkeySig, ok := appKeySigHoler.appKeys[appkey]
 	return appkeySig, ok
 }
 
-func evictAppKeySig(appkey string) {
+func EvictAppKeySig(appkey string) {
     appKeySigHoler.Lock()
     defer appKeySigHoler.Unlock()
     delete(appKeySigHoler.appKeys, appkey)
 }
 
-func verify(encryptedUrl string, privateKey string, signature string) (bool, error) {
+func Verify(encryptedUrl string, privateKey string, signature string) (bool, error) {
 	return true, nil
 }

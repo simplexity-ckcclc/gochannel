@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/simplexity-ckcclc/gochannel/api"
+	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/match"
 	"net/http"
@@ -20,7 +21,7 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := api.LoadAppKeySigs(db); err != nil {
+	if err := entity.LoadAppKeySigs(db); err != nil {
 		panic(err)
 	}
 
