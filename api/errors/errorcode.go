@@ -16,8 +16,16 @@ var (
 		Message: "Required parameter missing",
 	}
 	APP_KEY_NOT_FOUND = ErrorCode{
-		Code:    30000,
+		Code:    20100,
 		Message: "App key not found",
+	}
+	SIG_INVALID = ErrorCode{
+		Code:    20200,
+		Message: "Signature invalid",
+	}
+	DUPLICATE_NONCE = ErrorCode{
+		Code:    20300,
+		Message: "Duplicate nonce",
 	}
 )
 

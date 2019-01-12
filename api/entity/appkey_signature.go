@@ -3,7 +3,7 @@ package entity
 import (
 	"database/sql"
 	"fmt"
-    "sync"
+	"sync"
 )
 
 var appKeySigHoler = struct {
@@ -14,7 +14,7 @@ var appKeySigHoler = struct {
 
 type appKeySig struct {
 	appKey     string
-	publicKey  string
+	PublicKey  string
 	privateKey string
 }
 
@@ -30,7 +30,7 @@ func LoadAppKeySigs(db *sql.DB) error {
 	appKeySigHoler.Lock()
 	defer appKeySigHoler.Unlock()
 	for rows.Next() {
-		err = rows.Scan(&appkeySig.appKey, &appkeySig.publicKey, &appkeySig.privateKey)
+		err = rows.Scan(&appkeySig.appKey, &appkeySig.PublicKey, &appkeySig.privateKey)
 		if err != nil {
 			fmt.Print(err.Error())
 		}
@@ -54,6 +54,16 @@ func EvictAppKeySig(appkey string) {
     delete(appKeySigHoler.appKeys, appkey)
 }
 
-func Verify(encryptedUrl string, privateKey string, signature string) (bool, error) {
-	return true, nil
+func RegisterAppKeySig(db *sql.DB, appkey string) error {
+	var appkeySig appKeySig
+	if err := db.QueryRow("select app_key, public_key, private_key from appkey_sig where app_key = ?;", appkey).Scan(&appkeySig.appKey, &appkeySig.PublicKey, &appkeySig.privateKey); err != nil {
+		fmt.Print(err.Error())
+		return err
+	}
+
+	appKeySigHoler.Lock()
+	defer appKeySigHoler.Unlock()
+	appKeySigHoler.appKeys[appkeySig.appKey] = appkeySig
+	return nil
 }
+
