@@ -6,15 +6,14 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api/errors"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/api/rsa"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	"net/http"
 	"strings"
 	"time"
 )
 
 var (
-	token     = ""
-	publicKey = ""
-	nonces    = make(map[string]time.Time)
+	nonces = make(map[string]time.Time)
 )
 
 func Router() *gin.Engine {
@@ -53,8 +52,8 @@ func authInternal() gin.HandlerFunc {
 			return
 		}
 
-		sourceURL := strings.Join([]string{token, nonce}, ":")
-		valid, err := rsa.VerifySig(sourceURL, publicKey, sig)
+		sourceURL := strings.Join([]string{common.Conf.Api.Internal.Token, nonce}, ":")
+		valid, err := rsa.VerifySig(sourceURL, common.Conf.Api.Internal.PublicKey, sig)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, errors.INTERNAL_SERVER_ERROR)
 			return

@@ -1,0 +1,6 @@
+core:
+  dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
+api:
+  internal:
+    token: token-example
+    publicKey: publicKey-example

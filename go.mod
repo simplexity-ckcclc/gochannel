@@ -1,10 +1,10 @@
 module github.com/simplexity-ckcclc/gochannel
 
 require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/Shopify/sarama v1.19.0 // indirect
 	github.com/Shopify/toxiproxy v2.1.3+incompatible // indirect
 	github.com/bsm/sarama-cluster v2.1.15+incompatible
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.1.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
@@ -20,10 +20,8 @@ require (
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a // indirect
-	github.com/stretchr/testify v1.2.2 // indirect
-	github.com/ugorji/go/codec v0.0.0-20181022190402-e5e69e061d4f // indirect
+	github.com/spf13/viper v1.3.1
 	golang.org/x/net v0.0.0-20190107210223-45ffb0cd1ba0 // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
 	golang.org/x/sys v0.0.0-20190107173414-20be8e55dc7b // indirect
