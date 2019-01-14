@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/api/errors"
-	"github.com/simplexity-ckcclc/gochannel/api/util"
+	"github.com/simplexity-ckcclc/gochannel/api/rsa"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"net/http"
 	"strings"
@@ -31,7 +31,7 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 	sourceURL := buildSourceURL(click)
-	valid, err := util.VerifySig(sourceURL, appkeySig.PublicKey, sig)
+	valid, err := rsa.VerifySig(sourceURL, appkeySig.PublicKey, sig)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.INTERNAL_SERVER_ERROR)
 		return
@@ -47,7 +47,6 @@ func ClickHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, errors.SUCCESS)
 }
-
 
 func buildSourceURL(click entity.ClickInfo) string {
 	var sb strings.Builder

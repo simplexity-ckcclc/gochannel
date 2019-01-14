@@ -5,16 +5,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/simplexity-ckcclc/gochannel/api/errors"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
-	"github.com/simplexity-ckcclc/gochannel/api/util"
+	"github.com/simplexity-ckcclc/gochannel/api/rsa"
 	"net/http"
 	"strings"
 	"time"
 )
 
 var (
-	token = ""
+	token     = ""
 	publicKey = ""
-	nonces = make(map[string]time.Time)
+	nonces    = make(map[string]time.Time)
 )
 
 func Router() *gin.Engine {
@@ -48,13 +48,13 @@ func authInternal() gin.HandlerFunc {
 			return
 		}
 
-		sourceURL := buildSourceText(nonce)
 		if valid := validateNonce(nonce); !valid {
 			c.JSON(http.StatusOK, errors.DUPLICATE_NONCE)
 			return
 		}
 
-		valid, err := util.VerifySig(sourceURL, publicKey, sig)
+		sourceURL := strings.Join([]string{token, nonce}, ":")
+		valid, err := rsa.VerifySig(sourceURL, publicKey, sig)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, errors.INTERNAL_SERVER_ERROR)
 			return
@@ -68,10 +68,10 @@ func authInternal() gin.HandlerFunc {
 }
 
 func validateNonce(nonce string) bool {
-	// evict all expired nonce, inefficient, but works since there is little internal request
+	// evict all expired nonce, inefficient, but works well since there is little internal request
 	now := time.Now()
 	for nonce, timestamp := range nonces {
-		if now.Sub(timestamp) > time.Duration(5 * time.Minute) {
+		if now.Sub(timestamp) > time.Duration(5*time.Minute) {
 			delete(nonces, nonce)
 		}
 	}
@@ -82,13 +82,3 @@ func validateNonce(nonce string) bool {
 	nonces[nonce] = time.Now()
 	return true
 }
-
-func buildSourceText(nonce string) string {
-	var sb strings.Builder
-	sb.WriteString(token)
-	sb.WriteString(":")
-	sb.WriteString(nonce)
-	return sb.String()
-}
-
-
