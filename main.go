@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/simplexity-ckcclc/gochannel/api"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/common"
@@ -9,11 +10,15 @@ import (
 	"net/http"
 )
 
-
 func main() {
+	var confPath string
+	flag.StringVar(&confPath, "conf", "", "gochannel config file")
+
+	flag.Parse()
+
 	// load config
 	var err error
-	common.Conf, err = config.LoadConf("")
+	common.Conf, err = config.LoadConf(confPath)
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +28,6 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-
 
 	// start match-Server
 	go match.Serve()

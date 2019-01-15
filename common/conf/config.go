@@ -3,10 +3,8 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"strings"
-
 	"github.com/spf13/viper"
+	"io/ioutil"
 )
 
 var defaultConf = []byte(`
@@ -20,26 +18,25 @@ api:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
-	Api    API    `yaml:"api"`
-	Core    Core    `yaml:"core"`
+	Api  API  `yaml:"api"`
+	Core Core `yaml:"core"`
 }
 
 type Core struct {
-	DSN			string		`yaml:"dsn"`
+	DSN string `yaml:"dsn"`
 }
 
 // SectionCore is sub section of config.
 type API struct {
-	Internal		Internal		`yaml:"internal"`
+	Internal Internal `yaml:"internal"`
 }
 
 type Internal struct {
-	Token			string	`yaml:"token"`
-	PublicKey		string	`yaml:"publicKey"`
+	Token     string `yaml:"token"`
+	PublicKey string `yaml:"publicKey"`
 }
 
 type Common struct {
-
 }
 
 // LoadConf load config from file and read in environment variables that match
@@ -47,9 +44,6 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	var conf ConfYaml
 
 	viper.SetConfigType("yaml")
-	//viper.AutomaticEnv()         // read in environment variables that match
-	//viper.SetEnvPrefix("gochannel") // will be upper-cased automatically
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if confPath != "" {
 		content, err := ioutil.ReadFile(confPath)
@@ -64,7 +58,7 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	} else {
 		viper.AddConfigPath("$HOME/go")
 		viper.AddConfigPath(".")
-		viper.SetConfigName("config")
+		viper.SetConfigName("gochannel_config")
 
 		// If a config file is found, read it in.
 		if err := viper.ReadInConfig(); err == nil {
