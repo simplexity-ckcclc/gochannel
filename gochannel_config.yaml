@@ -4,3 +4,9 @@ api:
   internal:
     token: token-example
     publicKey: publicKey-example
+log:
+  # text or json
+  format: "text"
+  # stdout: output to console, or define log path like "log/access_log"
+  apiLog: "stdout"
+  apiLevel: "debug"

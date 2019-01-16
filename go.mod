@@ -21,6 +21,7 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a // indirect
+	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/viper v1.3.1
 	golang.org/x/net v0.0.0-20190107210223-45ffb0cd1ba0 // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect

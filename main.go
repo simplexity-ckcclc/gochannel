@@ -5,7 +5,6 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/common"
-	"github.com/simplexity-ckcclc/gochannel/common/conf"
 	"github.com/simplexity-ckcclc/gochannel/match"
 	"net/http"
 )
@@ -18,8 +17,12 @@ func main() {
 
 	// load config
 	var err error
-	common.Conf, err = config.LoadConf(confPath)
+	common.Conf, err = common.LoadConf(confPath)
 	if err != nil {
+		panic(err)
+	}
+
+	if err := common.InitLog(common.Conf); err != nil {
 		panic(err)
 	}
 

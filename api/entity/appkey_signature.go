@@ -6,11 +6,10 @@ import (
 	"sync"
 )
 
-var appKeySigHoler = struct {
-        sync.RWMutex
-        appKeys map[string]appKeySig
-    }{appKeys:  make(map[string]appKeySig)}
-
+var appKeySigHolder = struct {
+	sync.RWMutex
+	appKeys map[string]appKeySig
+}{appKeys: make(map[string]appKeySig)}
 
 type appKeySig struct {
 	appKey     string
@@ -27,14 +26,14 @@ func LoadAppKeySigs(db *sql.DB) error {
 	}
 	defer rows.Close()
 
-	appKeySigHoler.Lock()
-	defer appKeySigHoler.Unlock()
+	appKeySigHolder.Lock()
+	defer appKeySigHolder.Unlock()
 	for rows.Next() {
 		err = rows.Scan(&appkeySig.appKey, &appkeySig.PublicKey, &appkeySig.privateKey)
 		if err != nil {
 			fmt.Print(err.Error())
 		}
-		appKeySigHoler.appKeys[appkeySig.appKey] = appkeySig
+		appKeySigHolder.appKeys[appkeySig.appKey] = appkeySig
 	}
 
 	err = rows.Err()
@@ -42,16 +41,16 @@ func LoadAppKeySigs(db *sql.DB) error {
 }
 
 func SearchAppKeySig(appkey string) (appKeySig, bool) {
-    appKeySigHoler.RLock()
-    defer appKeySigHoler.RUnlock()
-	appkeySig, ok := appKeySigHoler.appKeys[appkey]
+	appKeySigHolder.RLock()
+	defer appKeySigHolder.RUnlock()
+	appkeySig, ok := appKeySigHolder.appKeys[appkey]
 	return appkeySig, ok
 }
 
 func EvictAppKeySig(appkey string) {
-    appKeySigHoler.Lock()
-    defer appKeySigHoler.Unlock()
-    delete(appKeySigHoler.appKeys, appkey)
+	appKeySigHolder.Lock()
+	defer appKeySigHolder.Unlock()
+	delete(appKeySigHolder.appKeys, appkey)
 }
 
 func RegisterAppKeySig(db *sql.DB, appkey string) error {
@@ -61,9 +60,8 @@ func RegisterAppKeySig(db *sql.DB, appkey string) error {
 		return err
 	}
 
-	appKeySigHoler.Lock()
-	defer appKeySigHoler.Unlock()
-	appKeySigHoler.appKeys[appkeySig.appKey] = appkeySig
+	appKeySigHolder.Lock()
+	defer appKeySigHolder.Unlock()
+	appKeySigHolder.appKeys[appkeySig.appKey] = appkeySig
 	return nil
 }
-

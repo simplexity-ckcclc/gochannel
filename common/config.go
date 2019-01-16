@@ -1,4 +1,4 @@
-package config
+package common
 
 import (
 	"bytes"
@@ -18,25 +18,29 @@ api:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
-	Api  API  `yaml:"api"`
-	Core Core `yaml:"core"`
+	Api  api  `yaml:"api"`
+	Core core `yaml:"core"`
+	Log  log  `yaml:"log"`
 }
 
-type Core struct {
+type core struct {
 	DSN string `yaml:"dsn"`
 }
 
 // SectionCore is sub section of config.
-type API struct {
-	Internal Internal `yaml:"internal"`
+type api struct {
+	Internal internal `yaml:"internal"`
 }
 
-type Internal struct {
+type internal struct {
 	Token     string `yaml:"token"`
 	PublicKey string `yaml:"publicKey"`
 }
 
-type Common struct {
+type log struct {
+	Format   string `yaml:"format"`
+	ApiLog   string `yaml:"apiLog"`
+	ApiLevel string `yaml:"apiLevel"`
 }
 
 // LoadConf load config from file and read in environment variables that match
@@ -77,6 +81,11 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	// API
 	conf.Api.Internal.Token = viper.GetString("api.internal.token")
 	conf.Api.Internal.PublicKey = viper.GetString("api.internal.publicKey")
+
+	// Log
+	conf.Log.Format = viper.GetString("log.format")
+	conf.Log.ApiLog = viper.GetString("log.apiLog")
+	conf.Log.ApiLevel = viper.GetString("log.apiLevel")
 
 	return conf, nil
 }

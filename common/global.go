@@ -1,7 +1,10 @@
 package common
 
-import "github.com/simplexity-ckcclc/gochannel/common/conf"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 var (
-  Conf config.ConfYaml
+	Conf   ConfYaml
+	ApiLog *logrus.Logger
 )

@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/simplexity-ckcclc/gochannel/api/errors"
+	"github.com/simplexity-ckcclc/gochannel/api/errorcode"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/api/rsa"
 	"github.com/simplexity-ckcclc/gochannel/common"
@@ -43,22 +43,22 @@ func authInternal() gin.HandlerFunc {
 		nonce := c.Query("nonce")
 		sig := c.Query("sig")
 		if nonce == "" || sig == "" {
-			c.JSON(http.StatusOK, errors.REQUIRED_PARAMETER_MISSING)
+			c.JSON(http.StatusOK, errorcode.REQUIRED_PARAMETER_MISSING)
 			return
 		}
 
 		if valid := validateNonce(nonce); !valid {
-			c.JSON(http.StatusOK, errors.DUPLICATE_NONCE)
+			c.JSON(http.StatusOK, errorcode.DUPLICATE_NONCE)
 			return
 		}
 
 		sourceURL := strings.Join([]string{common.Conf.Api.Internal.Token, nonce}, ":")
 		valid, err := rsa.VerifySig(sourceURL, common.Conf.Api.Internal.PublicKey, sig)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, errors.INTERNAL_SERVER_ERROR)
+			c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
 			return
 		} else if !valid {
-			c.JSON(http.StatusOK, errors.SIG_INVALID)
+			c.JSON(http.StatusOK, errorcode.SIG_INVALID)
 			return
 		}
 

@@ -1,6 +1,9 @@
 package entity
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 type ClickInfo struct {
 	AppKey   string `form:"appKey" binding:"required"`
@@ -16,4 +19,12 @@ func InsertClickInfo(db *sql.DB, click ClickInfo) error {
 
 	_, err = stmt.Exec(click.AppKey, click.DeviceId)
 	return err
+}
+
+func (clickInfo ClickInfo) String() string {
+	jsonStr, err := json.Marshal(clickInfo)
+	if err != nil {
+		return ""
+	}
+	return string(jsonStr)
 }

@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
-	"github.com/simplexity-ckcclc/gochannel/api/errors"
+	"github.com/simplexity-ckcclc/gochannel/api/errorcode"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -13,20 +14,25 @@ import (
 func EvictAppKeyHandler(c *gin.Context) {
 	appkey := c.Param("appkey")
 	entity.EvictAppKeySig(appkey)
-	c.JSON(http.StatusOK, errors.SUCCESS)
+	common.ApiLog.WithFields(logrus.Fields{
+		"appkey": appkey,
+	}).Info("Evict app key")
+	c.JSON(http.StatusOK, errorcode.SUCCESS)
 }
-
 
 // The request responds to a url matching:  /internal/appkey/:appkey/evict?nonce=xx&sig=
 func RegisterAppKeyHandler(c *gin.Context) {
 	appkey := c.Param("appkey")
 	if err := entity.RegisterAppKeySig(common.DB, appkey); err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusOK, errors.APP_KEY_NOT_FOUND)
+			c.JSON(http.StatusOK, errorcode.APP_KEY_NOT_FOUND)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errors.INTERNAL_SERVER_ERROR)
+		c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
 		return
 	}
-	c.JSON(http.StatusOK, errors.SUCCESS)
+	common.ApiLog.WithFields(logrus.Fields{
+		"appkey": appkey,
+	}).Info("Register app key")
+	c.JSON(http.StatusOK, errorcode.SUCCESS)
 }
