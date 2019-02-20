@@ -42,7 +42,7 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 
-	if err := entity.InsertClickInfo(common.DB, click); err != nil {
+	if err := click.InsertDB(common.DB); err != nil {
 		c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
 		return
 	}

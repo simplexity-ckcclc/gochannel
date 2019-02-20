@@ -10,14 +10,14 @@ type ClickInfo struct {
 	DeviceId string `form:"deviceId" binding:"required"`
 }
 
-func InsertClickInfo(db *sql.DB, click ClickInfo) error {
+func (clickInfo *ClickInfo) InsertDB(db *sql.DB) error {
 	stmt, err := db.Prepare("INSERT INTO click_info (app_key, device_id) VALUES (?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(click.AppKey, click.DeviceId)
+	_, err = stmt.Exec(clickInfo.AppKey, clickInfo.DeviceId)
 	return err
 }
 
