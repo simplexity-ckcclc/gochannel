@@ -2,6 +2,7 @@ package match
 
 import (
 	"github.com/bsm/sarama-cluster"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	"log"
 )
 
@@ -24,9 +25,10 @@ func startKafkaConsumer(messages chan<- []byte) error {
 	config.Group.Return.Notifications = true
 
 	// init consumer
-	brokers := []string{"127.0.0.1:9092"}
-	topics := []string{"foo"}
-	consumer, err := cluster.NewConsumer(brokers, "go-channel-consumer-group", topics, config)
+	brokers := common.Conf.Kafka.Consumer.BootstrapServer
+	topics := common.Conf.Kafka.Consumer.Topic
+	groupId := common.Conf.Kafka.Consumer.GroupId
+	consumer, err := cluster.NewConsumer(brokers, groupId, topics, config)
 	if err != nil {
 		return err
 	}

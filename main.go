@@ -44,6 +44,8 @@ func main() {
 		Addr:    ":8480",
 		Handler: api.Router(),
 	}
-	server.ListenAndServe()
+	if err := server.ListenAndServe(); err != nil {
+		panic(err)
+	}
 
 }

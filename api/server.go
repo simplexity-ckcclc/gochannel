@@ -66,6 +66,7 @@ func authInternal() gin.HandlerFunc {
 	}
 }
 
+// in case for replay attack
 func validateNonce(nonce string) bool {
 	// evict all expired nonce, inefficient, but works well since there is little internal request
 	now := time.Now()

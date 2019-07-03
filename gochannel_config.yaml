@@ -4,6 +4,14 @@ api:
   internal:
     token: token-example
     publicKey: publicKey-example
+kafka:
+  consumer: 
+    bootstrap-server: 
+      - localhost:9092
+    topic: 
+      - gochannel
+    group-id: gochannel_group
+
 log:
   # text or json
   format: "text"

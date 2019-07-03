@@ -18,9 +18,10 @@ api:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
-	Api  api  `yaml:"api"`
-	Core core `yaml:"core"`
-	Log  log  `yaml:"log"`
+	Api   api   `yaml:"api"`
+	Kafka kafka `yaml:"kafka"`
+	Core  core  `yaml:"core"`
+	Log   log   `yaml:"log"`
 }
 
 type core struct {
@@ -35,6 +36,16 @@ type api struct {
 type internal struct {
 	Token     string `yaml:"token"`
 	PublicKey string `yaml:"publicKey"`
+}
+
+type kafka struct {
+	Consumer consumer `yaml:"consumer"`
+}
+
+type consumer struct {
+	BootstrapServer []string `yaml:"bootstrap-server"`
+	Topic           []string `yaml:"topic"`
+	GroupId         string   `yaml:"group-id"`
 }
 
 type log struct {
@@ -81,6 +92,11 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	// API
 	conf.Api.Internal.Token = viper.GetString("api.internal.token")
 	conf.Api.Internal.PublicKey = viper.GetString("api.internal.publicKey")
+
+	// Kafka
+	conf.Kafka.Consumer.BootstrapServer = viper.GetStringSlice("kafka.consumer.bootstrap-server")
+	conf.Kafka.Consumer.Topic = viper.GetStringSlice("kafka.consumer.topic")
+	conf.Kafka.Consumer.GroupId = viper.GetString("kafka.consumer.group-id")
 
 	// Log
 	conf.Log.Format = viper.GetString("log.format")
