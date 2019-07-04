@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
-	"github.com/simplexity-ckcclc/gochannel/api/errorcode"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
@@ -60,30 +60,30 @@ func authRequired() gin.HandlerFunc {
 		nonce := c.Query("nonce")
 		sig := c.Query("sig")
 		if nonce == "" || sig == "" {
-			c.JSON(http.StatusBadRequest, errorcode.REQUIRED_PARAMETER_MISSING)
+			api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
 			c.Abort()
 			return
 		}
 
 		if valid := validateNonce(nonce); !valid {
-			c.JSON(http.StatusOK, errorcode.DUPLICATE_NONCE)
+			api.ResponseJSON(c, http.StatusOK, api.DUPLICATE_NONCE)
 			c.Abort()
 			return
 		}
 
-		//valid, err := api.VerifyBase64WithRSAPubKey(nonce, common.Conf.Api.Internal.PublicKey, sig)
-		//if err != nil {
-		//	api.ApiLog.WithFields(logrus.Fields{
-		//		"pubKey": common.Conf.Api.Internal.PublicKey,
-		//	}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
-		//	c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
-		//	c.Abort()
-		//	return
-		//} else if !valid {
-		//	c.JSON(http.StatusOK, errorcode.SIG_INVALID)
-		//	c.Abort()
-		//	return
-		//}
+		valid, err := api.VerifyBase64WithRSAPubKey(nonce, common.Conf.Api.Internal.PublicKey, sig)
+		if err != nil {
+			api.ApiLog.WithFields(logrus.Fields{
+				"pubKey": common.Conf.Api.Internal.PublicKey,
+			}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
+			api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
+			c.Abort()
+			return
+		} else if !valid {
+			api.ResponseJSON(c, http.StatusOK, api.SIG_INVALID)
+			c.Abort()
+			return
+		}
 
 		c.Next()
 	}

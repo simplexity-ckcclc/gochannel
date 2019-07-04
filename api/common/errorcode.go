@@ -1,6 +1,9 @@
-package errorcode
+package common
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 var (
 	SUCCESS = ErrorCode{
@@ -36,6 +39,33 @@ var (
 type ErrorCode struct {
 	Code    int32  `json:"code"`
 	Message string `json:"message"`
+}
+
+type response struct {
+	Code    int32       `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
+func ResponseJSON(c *gin.Context, httpStatus int, errorCode ErrorCode) {
+	c.JSON(httpStatus, errorCode)
+}
+
+func ResponseJSONWithExtraMsg(c *gin.Context, httpStatus int, errorCode ErrorCode, extraMsg string) {
+	res := &response{
+		Code:    errorCode.Code,
+		Message: errorCode.Message + " : " + extraMsg,
+	}
+	c.JSON(httpStatus, res)
+}
+
+func ResponseJSONWithData(c *gin.Context, httpStatus int, errorCode ErrorCode, data interface{}) {
+	res := &response{
+		Code:    errorCode.Code,
+		Message: errorCode.Message,
+		Data:    data,
+	}
+	c.JSON(httpStatus, res)
 }
 
 func (error ErrorCode) String() string {

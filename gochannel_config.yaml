@@ -3,7 +3,7 @@ core:
 api:
   address: :8480 
   internal:
-    publicKey: publicKey-example
+    publicKey: MIGJAoGBAJaxeQZ0W3/DJUJQy5qoV52UQ3Urxrv4yL0dhqBuBhPItFYa4zQxKdapvMnbaiHpLkIwPN1E5rlQDAAPwO2oNPrb9n0v8zoX4DyOFS9uXjjUBstEqgjA8MfWz5ChvlcuoEqDFcMYsAbBMTBOdjVw6XBPuely9ZCu6Zfj7LrSuGqZAgMBAAE=
 kafka:
   consumer: 
     bootstrap-server: 

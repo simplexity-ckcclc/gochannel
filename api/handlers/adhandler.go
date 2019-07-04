@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
-	"github.com/simplexity-ckcclc/gochannel/api/errorcode"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -15,20 +15,20 @@ import (
 func ClickHandler(c *gin.Context) {
 	var click entity.ClickInfo
 	if err := c.ShouldBind(&click); err != nil {
-		c.JSON(http.StatusBadRequest, errorcode.REQUIRED_PARAMETER_MISSING)
+		api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
 		return
 	}
 
 	appkeySig, found := entity.SearchAppKeySig(click.AppKey)
 	if !found {
-		c.JSON(http.StatusOK, errorcode.APP_KEY_NOT_FOUND)
+		api.ResponseJSON(c, http.StatusOK, api.APP_KEY_NOT_FOUND)
 		return
 	}
 
 	//verify app key sig
 	sig := c.Query("sig")
 	if sig == "" {
-		c.JSON(http.StatusBadRequest, errorcode.REQUIRED_PARAMETER_MISSING)
+		api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
 		return
 	}
 	sourceURL := buildSourceURL(click)
@@ -37,7 +37,7 @@ func ClickHandler(c *gin.Context) {
 		api.ApiLog.WithFields(logrus.Fields{
 			"pubKey": appkeySig.PublicKey,
 		}).Error("Verify click signature - VerifyBase64WithRSAPubKey error : ", err)
-		c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
+		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
 		return
 	} else if !valid {
 		api.ApiLog.WithFields(logrus.Fields{
@@ -45,19 +45,24 @@ func ClickHandler(c *gin.Context) {
 			"pubKey":    appkeySig.PublicKey,
 			"sig":       sig,
 		}).Info("Invalid signature")
-		c.JSON(http.StatusOK, errorcode.SIG_INVALID)
+		api.ResponseJSON(c, http.StatusOK, api.SIG_INVALID)
 		return
 	}
 
 	if err := click.InsertDB(common.DB); err != nil {
-		c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
+		api.ApiLog.WithFields(logrus.Fields{
+			"clickInfo": click,
+			"pubKey":    appkeySig.PublicKey,
+			"sig":       sig,
+		}).Error("Insert DB error : ", err)
+		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
 		return
 	}
 
 	api.ApiLog.WithFields(logrus.Fields{
 		"clickInfo": click,
 	}).Info("Insert click info")
-	c.JSON(http.StatusOK, errorcode.SUCCESS)
+	api.ResponseJSON(c, http.StatusOK, api.SUCCESS)
 }
 
 func buildSourceURL(click entity.ClickInfo) string {
@@ -66,5 +71,7 @@ func buildSourceURL(click entity.ClickInfo) string {
 	sb.WriteString(click.AppKey)
 	sb.WriteString("&deviceId=")
 	sb.WriteString(click.DeviceId)
+	sb.WriteString("&clickTime=")
+	sb.WriteString(strconv.FormatInt(click.ClickTime, 10))
 	return sb.String()
 }
