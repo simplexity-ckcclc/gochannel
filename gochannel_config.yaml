@@ -1,8 +1,8 @@
 core:
   dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
 api:
+  address: :8480 
   internal:
-    token: token-example
     publicKey: publicKey-example
 kafka:
   consumer: 

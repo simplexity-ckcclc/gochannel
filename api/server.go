@@ -1,14 +1,13 @@
 package api
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
+	api "github.com/simplexity-ckcclc/gochannel/api/common"
+	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/api/errorcode"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
-	"github.com/simplexity-ckcclc/gochannel/api/rsa"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -16,7 +15,27 @@ var (
 	nonces = make(map[string]time.Time)
 )
 
-func Router() *gin.Engine {
+func Serve() {
+
+	conf := common.Conf
+	if err := api.InitLogger(conf); err != nil {
+		panic(err)
+	}
+
+	if err := entity.LoadAppKeySigs(common.DB); err != nil {
+		panic(err)
+	}
+
+	server := &http.Server{
+		Addr:    conf.Api.Address,
+		Handler: router(),
+	}
+	if err := server.ListenAndServe(); err != nil {
+		panic(err)
+	}
+}
+
+func router() *gin.Engine {
 	//router := gin.Default()
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -28,8 +47,7 @@ func Router() *gin.Engine {
 	}
 
 	internalGroup := router.Group("/internal")
-	internalGroup.Use(authInternal())
-	internalGroup.Use()
+	internalGroup.Use(authRequired())
 	{
 		internalGroup.POST("/appkey/:appkey/evict", handlers.EvictAppKeyHandler)
 		internalGroup.POST("/appkey/:appkey/register", handlers.RegisterAppKeyHandler)
@@ -37,30 +55,35 @@ func Router() *gin.Engine {
 	return router
 }
 
-func authInternal() gin.HandlerFunc {
+func authRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("auth internal")
 		nonce := c.Query("nonce")
 		sig := c.Query("sig")
 		if nonce == "" || sig == "" {
-			c.JSON(http.StatusOK, errorcode.REQUIRED_PARAMETER_MISSING)
+			c.JSON(http.StatusBadRequest, errorcode.REQUIRED_PARAMETER_MISSING)
+			c.Abort()
 			return
 		}
 
 		if valid := validateNonce(nonce); !valid {
 			c.JSON(http.StatusOK, errorcode.DUPLICATE_NONCE)
+			c.Abort()
 			return
 		}
 
-		sourceURL := strings.Join([]string{common.Conf.Api.Internal.Token, nonce}, ":")
-		valid, err := rsa.VerifySig(sourceURL, common.Conf.Api.Internal.PublicKey, sig)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
-			return
-		} else if !valid {
-			c.JSON(http.StatusOK, errorcode.SIG_INVALID)
-			return
-		}
+		//valid, err := api.VerifyBase64WithRSAPubKey(nonce, common.Conf.Api.Internal.PublicKey, sig)
+		//if err != nil {
+		//	api.ApiLog.WithFields(logrus.Fields{
+		//		"pubKey": common.Conf.Api.Internal.PublicKey,
+		//	}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
+		//	c.JSON(http.StatusInternalServerError, errorcode.INTERNAL_SERVER_ERROR)
+		//	c.Abort()
+		//	return
+		//} else if !valid {
+		//	c.JSON(http.StatusOK, errorcode.SIG_INVALID)
+		//	c.Abort()
+		//	return
+		//}
 
 		c.Next()
 	}

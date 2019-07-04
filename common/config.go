@@ -11,9 +11,24 @@ var defaultConf = []byte(`
 core:
   dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
 api:
-  internal: 
-    token: 
-    publicKey: 
+  address: :8480 
+  internal:
+    publicKey: publicKey-example
+kafka:
+  consumer: 
+    bootstrap-server: 
+      - localhost:9092
+    topic: 
+      - gochannel
+    group-id: gochannel_group
+
+log:
+  # text or json
+  format: "text"
+  # stdout: output to console, or define log path like "log/access_log"
+  apiLog: "stdout"
+  apiLevel: "debug"
+
 `)
 
 // ConfYaml is config structure.
@@ -30,11 +45,11 @@ type core struct {
 
 // SectionCore is sub section of config.
 type api struct {
+	Address  string   `yaml:"address"`
 	Internal internal `yaml:"internal"`
 }
 
 type internal struct {
-	Token     string `yaml:"token"`
 	PublicKey string `yaml:"publicKey"`
 }
 
@@ -77,7 +92,7 @@ func LoadConf(confPath string) (ConfYaml, error) {
 
 		// If a config file is found, read it in.
 		if err := viper.ReadInConfig(); err == nil {
-			fmt.Println("Using config file:", viper.ConfigFileUsed())
+			fmt.Println("[Global] Using config file:", viper.ConfigFileUsed())
 		} else {
 			// load default config
 			if err := viper.ReadConfig(bytes.NewBuffer(defaultConf)); err != nil {
@@ -90,7 +105,7 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	conf.Core.DSN = viper.GetString("core.dsn")
 
 	// API
-	conf.Api.Internal.Token = viper.GetString("api.internal.token")
+	conf.Api.Address = viper.GetString("api.address")
 	conf.Api.Internal.PublicKey = viper.GetString("api.internal.publicKey")
 
 	// Kafka

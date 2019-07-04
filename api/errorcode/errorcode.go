@@ -19,6 +19,10 @@ var (
 		Code:    20100,
 		Message: "App key not found",
 	}
+	DUPLICATE_APP_KEY = ErrorCode{
+		Code:    20101,
+		Message: "Duplicate App key",
+	}
 	SIG_INVALID = ErrorCode{
 		Code:    20200,
 		Message: "Signature invalid",

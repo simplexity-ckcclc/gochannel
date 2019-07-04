@@ -1,24 +1,27 @@
 package common
 
 import (
-	"errors"
+	"fmt"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"os"
 )
 
-func InitLog(conf ConfYaml) error {
+var (
+	ApiLog *logrus.Logger
+)
 
-	var err error
-
-	// init service logger
+func InitLogger(conf common.ConfYaml) error {
 	ApiLog = logrus.New()
 	setLogFormat(ApiLog, conf.Log.Format)
-	if err = setLogOut(ApiLog, conf.Log.ApiLog); err != nil {
-		return errors.New("Set api log path error: " + err.Error())
+	if err := setLogOutput(ApiLog, conf.Log.ApiLog); err != nil {
+		fmt.Println("[API server] Set api log output error : ", err)
+		return err
 	}
 
-	if err = setLogLevel(ApiLog, conf.Log.ApiLevel); err != nil {
-		return errors.New("Set api log level error: " + err.Error())
+	if err := setLogLevel(ApiLog, conf.Log.ApiLevel); err != nil {
+		fmt.Println("[API server] Set api log level error : ", err)
+		return err
 	}
 
 	return nil
@@ -35,7 +38,7 @@ func setLogFormat(log *logrus.Logger, format string) {
 }
 
 // SetLogOut provide log stdout and stderr output
-func setLogOut(log *logrus.Logger, outString string) error {
+func setLogOutput(log *logrus.Logger, outString string) error {
 	switch outString {
 	case "stdout":
 		log.SetOutput(os.Stdout)
@@ -48,6 +51,7 @@ func setLogOut(log *logrus.Logger, outString string) error {
 		}
 		log.SetOutput(f)
 	}
+	fmt.Println("[API server] Set api log output : ", outString)
 	return nil
 }
 
@@ -59,5 +63,6 @@ func setLogLevel(log *logrus.Logger, levelString string) error {
 		return err
 	}
 	log.SetLevel(level)
+	fmt.Println("[API server] Set api log level : ", levelString)
 	return nil
 }

@@ -6,8 +6,8 @@ import (
 )
 
 type ClickInfo struct {
-	AppKey   string `form:"appKey" binding:"required"`
-	DeviceId string `form:"deviceId" binding:"required"`
+	AppKey   string `json:"appKey" form:"appKey" binding:"required"`
+	DeviceId string `json:"deviceId" form:"deviceId" binding:"required"`
 }
 
 func (clickInfo *ClickInfo) InsertDB(db *sql.DB) error {
