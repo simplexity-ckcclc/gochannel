@@ -9,42 +9,43 @@ import (
 	"net/http"
 )
 
-// The request responds to a url matching:  /internal/appkey/:appkey/evict?nonce=xx&sig=
-func EvictAppKeyHandler(c *gin.Context) {
-	appkey := c.Param("appkey")
-	if err := entity.EvictAppKeySig(common.DB, appkey); err != nil {
+// The request responds to a url matching:  /internal/channel/:channel/evict?nonce=xx&sig=
+func EvictChannelHandler(c *gin.Context) {
+	channelId := c.Param("channel")
+	if err := entity.EvictChannelSig(common.DB, channelId); err != nil {
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
 		return
 	}
 
 	api.ApiLog.WithFields(logrus.Fields{
-		"appkey": appkey,
-	}).Info("Evict app key")
+		"channelId": channelId,
+	}).Info("Evict channel")
 	api.ResponseJSON(c, http.StatusOK, api.SUCCESS)
 }
 
-// The request responds to a url matching:  /internal/appkey/:appkey/evict?nonce=xx&sig=
-func RegisterAppKeyHandler(c *gin.Context) {
-	appkey := c.Param("appkey")
-	if len(appkey) == 0 {
+// The request responds to a url matching:  /internal/channel/:channel/register?nonce=xx&sig=
+func RegisterChannelHandler(c *gin.Context) {
+	appkey := c.Query("appKey")
+	channelId := c.Param("channel")
+	if len(appkey) == 0 || len(channelId) == 0 {
 		api.ResponseJSON(c, http.StatusOK, api.REQUIRED_PARAMETER_MISSING)
 		return
 	}
 
-	if _, found := entity.SearchAppKeySig(appkey); found {
-		api.ResponseJSON(c, http.StatusOK, api.DUPLICATE_APP_KEY)
+	if _, found := entity.SearchChannelSig(channelId); found {
+		api.ResponseJSON(c, http.StatusOK, api.DUPLICATE_CHANNEL)
 		return
 	}
 
-	sig, err := entity.RegisterAppKeySig(common.DB, appkey)
+	sig, err := entity.RegisterChannelSig(common.DB, appkey, channelId)
 	if err != nil {
-		api.ApiLog.Warning("RegisterAppKeySig error : ", err)
+		api.ApiLog.Warning("RegisterChannelSig error : ", err)
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
 		return
 	}
 
 	api.ApiLog.WithFields(logrus.Fields{
-		"appkeySig": sig,
-	}).Info("Register app key")
+		"channelSig": sig,
+	}).Info("Register channel")
 	api.ResponseJSONWithData(c, http.StatusOK, api.SUCCESS, sig)
 }

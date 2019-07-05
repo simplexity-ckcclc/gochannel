@@ -18,13 +18,13 @@ var (
 		Code:    20000,
 		Message: "Required parameter missing",
 	}
-	APP_KEY_NOT_FOUND = ErrorCode{
+	CHANNEL_NOT_FOUND = ErrorCode{
 		Code:    20100,
-		Message: "App key not found",
+		Message: "Channel not found",
 	}
-	DUPLICATE_APP_KEY = ErrorCode{
+	DUPLICATE_CHANNEL = ErrorCode{
 		Code:    20101,
-		Message: "Duplicate App key",
+		Message: "Duplicate channel",
 	}
 	SIG_INVALID = ErrorCode{
 		Code:    20200,

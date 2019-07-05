@@ -7,18 +7,19 @@ import (
 
 type ClickInfo struct {
 	AppKey    string `json:"appKey" form:"appKey" binding:"required"`
+	ChannelId string `json:"channelId" form:"channelId" binding:"required"`
 	DeviceId  string `json:"deviceId" form:"deviceId" binding:"required"` // idfa or imei
 	ClickTime int64  `json:"clickTime" form:"clickTime" binding:"required"`
 }
 
 func (clickInfo *ClickInfo) InsertDB(db *sql.DB) error {
-	stmt, err := db.Prepare("INSERT INTO click_info (app_key, device_id, click_time) VALUES (?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO click_info (app_key, channel_id, device_id, click_time) VALUES (?, ?, ?, ?)")
+	defer stmt.Close()
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
 
-	_, err = stmt.Exec(clickInfo.AppKey, clickInfo.DeviceId, clickInfo.ClickTime)
+	_, err = stmt.Exec(clickInfo.AppKey, clickInfo.ChannelId, clickInfo.DeviceId, clickInfo.ClickTime)
 	return err
 }
 

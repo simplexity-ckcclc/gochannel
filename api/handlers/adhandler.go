@@ -19,9 +19,9 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 
-	appkeySig, found := entity.SearchAppKeySig(click.AppKey)
+	appkeySig, found := entity.SearchChannelSig(click.ChannelId)
 	if !found {
-		api.ResponseJSON(c, http.StatusOK, api.APP_KEY_NOT_FOUND)
+		api.ResponseJSON(c, http.StatusOK, api.CHANNEL_NOT_FOUND)
 		return
 	}
 
@@ -69,6 +69,8 @@ func buildSourceURL(click entity.ClickInfo) string {
 	var sb strings.Builder
 	sb.WriteString("appKey=")
 	sb.WriteString(click.AppKey)
+	sb.WriteString("&channelId=")
+	sb.WriteString(click.ChannelId)
 	sb.WriteString("&deviceId=")
 	sb.WriteString(click.DeviceId)
 	sb.WriteString("&clickTime=")

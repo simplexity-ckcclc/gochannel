@@ -22,7 +22,7 @@ func Serve() {
 		panic(err)
 	}
 
-	if err := entity.LoadAppKeySigs(common.DB); err != nil {
+	if err := entity.LoadChannelSigs(common.DB); err != nil {
 		panic(err)
 	}
 
@@ -49,8 +49,8 @@ func router() *gin.Engine {
 	internalGroup := router.Group("/internal")
 	internalGroup.Use(authRequired())
 	{
-		internalGroup.POST("/appkey/:appkey/evict", handlers.EvictAppKeyHandler)
-		internalGroup.POST("/appkey/:appkey/register", handlers.RegisterAppKeyHandler)
+		internalGroup.POST("/channel/:channel/evict", handlers.EvictChannelHandler)
+		internalGroup.POST("/channel/:channel/register", handlers.RegisterChannelHandler)
 	}
 	return router
 }
