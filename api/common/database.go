@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	DB *sql.DB	// todo should adopt an elegant way to share this var
+	DB *sql.DB // todo should adopt an elegant way to share this var
 )
 
 func OpenDB(DSN string) (*sql.DB, error) {

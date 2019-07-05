@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 )
 
+var Conf ConfYaml
 var defaultConf = []byte(`
 core:
   dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
@@ -70,20 +71,18 @@ type log struct {
 }
 
 // LoadConf load config from file and read in environment variables that match
-func LoadConf(confPath string) (ConfYaml, error) {
-	var conf ConfYaml
-
+func LoadConf(confPath string) error {
 	viper.SetConfigType("yaml")
 
 	if confPath != "" {
 		content, err := ioutil.ReadFile(confPath)
 
 		if err != nil {
-			return conf, err
+			return err
 		}
 
 		if err := viper.ReadConfig(bytes.NewBuffer(content)); err != nil {
-			return conf, err
+			return err
 		}
 	} else {
 		viper.AddConfigPath("$HOME/go")
@@ -96,27 +95,27 @@ func LoadConf(confPath string) (ConfYaml, error) {
 		} else {
 			// load default config
 			if err := viper.ReadConfig(bytes.NewBuffer(defaultConf)); err != nil {
-				return conf, err
+				return err
 			}
 		}
 	}
 
 	// Core
-	conf.Core.DSN = viper.GetString("core.dsn")
+	Conf.Core.DSN = viper.GetString("core.dsn")
 
 	// API
-	conf.Api.Address = viper.GetString("api.address")
-	conf.Api.Internal.PublicKey = viper.GetString("api.internal.publicKey")
+	Conf.Api.Address = viper.GetString("api.address")
+	Conf.Api.Internal.PublicKey = viper.GetString("api.internal.publicKey")
 
 	// Kafka
-	conf.Kafka.Consumer.BootstrapServer = viper.GetStringSlice("kafka.consumer.bootstrap-server")
-	conf.Kafka.Consumer.Topic = viper.GetStringSlice("kafka.consumer.topic")
-	conf.Kafka.Consumer.GroupId = viper.GetString("kafka.consumer.group-id")
+	Conf.Kafka.Consumer.BootstrapServer = viper.GetStringSlice("kafka.consumer.bootstrap-server")
+	Conf.Kafka.Consumer.Topic = viper.GetStringSlice("kafka.consumer.topic")
+	Conf.Kafka.Consumer.GroupId = viper.GetString("kafka.consumer.group-id")
 
 	// Log
-	conf.Log.Format = viper.GetString("log.format")
-	conf.Log.ApiLog = viper.GetString("log.apiLog")
-	conf.Log.ApiLevel = viper.GetString("log.apiLevel")
+	Conf.Log.Format = viper.GetString("log.format")
+	Conf.Log.ApiLog = viper.GetString("log.apiLog")
+	Conf.Log.ApiLevel = viper.GetString("log.apiLevel")
 
-	return conf, nil
+	return nil
 }

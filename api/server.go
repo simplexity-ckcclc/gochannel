@@ -22,7 +22,13 @@ func Serve() {
 		panic(err)
 	}
 
-	if err := entity.LoadChannelSigs(common.DB); err != nil {
+	db, err := api.OpenDB(common.Conf.Core.DSN)
+	defer db.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	if err := entity.LoadChannelSigs(api.DB); err != nil {
 		panic(err)
 	}
 

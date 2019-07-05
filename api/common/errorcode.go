@@ -26,6 +26,10 @@ var (
 		Code:    20101,
 		Message: "Duplicate channel",
 	}
+	APP_KEY_UNMATCHED = ErrorCode{
+		Code:    20102,
+		Message: "App key unmatched",
+	}
 	SIG_INVALID = ErrorCode{
 		Code:    20200,
 		Message: "Signature invalid",

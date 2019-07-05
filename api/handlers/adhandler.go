@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/api/entity"
-	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -22,6 +21,11 @@ func ClickHandler(c *gin.Context) {
 	appkeySig, found := entity.SearchChannelSig(click.ChannelId)
 	if !found {
 		api.ResponseJSON(c, http.StatusOK, api.CHANNEL_NOT_FOUND)
+		return
+	}
+
+	if appkeySig.AppKey != click.AppKey {
+		api.ResponseJSON(c, http.StatusOK, api.APP_KEY_UNMATCHED)
 		return
 	}
 
@@ -49,7 +53,7 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 
-	if err := click.InsertDB(common.DB); err != nil {
+	if err := click.InsertDB(api.DB); err != nil {
 		api.ApiLog.WithFields(logrus.Fields{
 			"clickInfo": click,
 			"pubKey":    appkeySig.PublicKey,

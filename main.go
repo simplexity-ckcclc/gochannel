@@ -26,19 +26,11 @@ func main() {
 
 	var confPath string
 	flag.StringVar(&confPath, "conf", "", "gochannel config file")
-
 	flag.Parse()
 
 	// load config
 	var err error
-	common.Conf, err = common.LoadConf(confPath)
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := common.OpenDB(common.Conf.Core.DSN)
-	defer db.Close()
-	if err != nil {
+	if err = common.LoadConf(confPath); err != nil {
 		panic(err)
 	}
 
