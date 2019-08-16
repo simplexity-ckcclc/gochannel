@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+//option go_package = "github.com/simplexity-ckcclc/gochannel/match/proto";
+
+package proto;
+
+message SdkDeviceReport {
+    string imei = 1;
+    string idfa = 2;
+    google.protobuf.Timestamp receive_time = 3;
+    string channel = 4;
+    string app_key = 5;
+
+    enum OsType {
+        IOS = 0;
+        ANDROID = 1;
+    }
+    OsType os_type = 6;
+
+    string os_version = 7;  // use for short-link match
+    string language = 8;    // use for short-link match
+    string resolution = 9;  // screen resolution, in format of '${wight}*${height}', use for short-link match
+    string source_ip = 10;  // screen resolution, in format of '${wight}*${height}', use for short-link match
+}

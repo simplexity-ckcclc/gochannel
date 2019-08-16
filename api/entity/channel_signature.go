@@ -2,7 +2,8 @@ package entity
 
 import (
 	"database/sql"
-	"github.com/simplexity-ckcclc/gochannel/api/common"
+	api "github.com/simplexity-ckcclc/gochannel/api/common"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	"sync"
 )
 
@@ -23,7 +24,7 @@ func LoadChannelSigs(db *sql.DB) error {
 	rows, err := db.Query("select app_key, channel_id, public_key, private_key from channel_sig;")
 	defer rows.Close()
 	if err != nil {
-		common.ApiLog.Error("Load channel signature error : ", err)
+		common.ApiLogger.Error("Load channel signature error : ", err)
 		return err
 	}
 
@@ -32,7 +33,7 @@ func LoadChannelSigs(db *sql.DB) error {
 	for rows.Next() {
 		err = rows.Scan(&appkey, &channelId, &pubKey, &priKey)
 		if err != nil {
-			common.ApiLog.Error("Load channel signature error : ", err)
+			common.ApiLogger.Error("Load channel signature error : ", err)
 			return err
 		}
 		sig := &channelSig{
@@ -73,7 +74,7 @@ func EvictChannelSig(db *sql.DB, channelId string) error {
 }
 
 func RegisterChannelSig(db *sql.DB, appkey string, channelId string) (*channelSig, error) {
-	pubKey, priKey, err := common.GenerateRSAKeyPair()
+	pubKey, priKey, err := api.GenerateRSAKeyPair()
 	if err != nil {
 		return nil, err
 	}

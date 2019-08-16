@@ -1,9 +1,10 @@
 package match
 
 import (
-	"fmt"
 	"github.com/golang/protobuf/proto"
+	"github.com/simplexity-ckcclc/gochannel/common"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
+	"github.com/sirupsen/logrus"
 )
 
 type messageHandler interface {
@@ -14,12 +15,19 @@ type MatchHandler struct {
 }
 
 func (handler MatchHandler) handle(message []byte) {
-	fmt.Println("Receive string : ", string(message))
-	device := &pb.Device{}
+	device := &pb.SdkDeviceReport{}
 	if err := proto.Unmarshal(message, device); err != nil {
-		fmt.Println("Failed to parse device :", err)
+		common.MatchLogger.Error("Parse device error : ", err)
 	} else {
-		fmt.Println("Device : ", device)
+		if err := insertIntoDB(device); err != nil {
+			common.MatchLogger.WithFields(logrus.Fields{
+				"Device ": device,
+			}).Error("Insert into DB error", err)
+		} else {
+			common.MatchLogger.WithFields(logrus.Fields{
+				"Device ": device,
+			}).Debug("Insert into DB")
+		}
 	}
 
 	// json
@@ -30,4 +38,17 @@ func (handler MatchHandler) handle(message []byte) {
 	//	fmt.Println(device)
 	//}
 
+}
+
+func insertIntoDB(device *pb.SdkDeviceReport) error {
+	stmt, err := common.DB.Prepare("INSERT INTO sdk_report (imei, idfa, app_key, channel, resolution, " +
+		"language, os_type, os_version, receive_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	defer stmt.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(device.Imei, device.Idfa, device.AppKey, device.Channel, device.Resolution,
+		device.Language, device.OsType, device.OsVersion, device.ReceiveTime, device.SourceIp)
+	return err
 }

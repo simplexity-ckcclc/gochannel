@@ -1,5 +1,8 @@
 core:
-  dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
+  database:
+    dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
+    max-open-conns: 5
+    max-idle-conns: 2
 api:
   address: :8480 
   internal:

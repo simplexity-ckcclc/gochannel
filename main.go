@@ -21,6 +21,17 @@ func main() {
 		panic(err)
 	}
 
+	conf := common.Conf
+	if err := common.InitLogger(conf); err != nil {
+		panic(err)
+	}
+
+	db, err := common.OpenDB(conf)
+	defer db.Close()
+	if err != nil {
+		panic(err)
+	}
+
 	// start match-Server
 	go match.Serve()
 

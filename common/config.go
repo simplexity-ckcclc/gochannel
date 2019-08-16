@@ -34,14 +34,21 @@ log:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
+	Core  Core  `yaml:"core"`
 	Api   api   `yaml:"api"`
 	Kafka kafka `yaml:"kafka"`
-	Core  core  `yaml:"core"`
 	Log   log   `yaml:"log"`
 }
 
-type core struct {
-	DSN string `yaml:"dsn"`
+type Core struct {
+	Database database `yaml:"database"`
+}
+
+type database struct {
+	DSN          string `yaml:"dsn"`
+	MaxOpenConns int    `yaml:"max-open-conns"`
+	MaxIdleConns int    `yaml:"max-idle-conns"`
+	//ConnMaxLifetime int `yaml:"conn-max-lifetime"`
 }
 
 // SectionCore is sub section of config.
@@ -101,7 +108,9 @@ func LoadConf(confPath string) error {
 	}
 
 	// Core
-	Conf.Core.DSN = viper.GetString("core.dsn")
+	Conf.Core.Database.DSN = viper.GetString("core.database.dsn")
+	Conf.Core.Database.MaxOpenConns = viper.GetInt("core.database.max-open-conns")
+	Conf.Core.Database.MaxIdleConns = viper.GetInt("core.database.max-idle-conns")
 
 	// API
 	Conf.Api.Address = viper.GetString("api.address")

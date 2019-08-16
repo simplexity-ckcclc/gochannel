@@ -2,24 +2,24 @@ package common
 
 import (
 	"fmt"
-	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"os"
 )
 
 var (
-	ApiLog *logrus.Logger
+	ApiLogger   *logrus.Logger
+	MatchLogger *logrus.Logger
 )
 
-func InitLogger(conf common.ConfYaml) error {
-	ApiLog = logrus.New()
-	setLogFormat(ApiLog, conf.Log.Format)
-	if err := setLogOutput(ApiLog, conf.Log.ApiLog); err != nil {
+func InitLogger(conf ConfYaml) error {
+	ApiLogger = logrus.New()
+	setLogFormat(ApiLogger, conf.Log.Format)
+	if err := setLogOutput(ApiLogger, conf.Log.ApiLog); err != nil {
 		fmt.Println("[API server] Set api log output error : ", err)
 		return err
 	}
 
-	if err := setLogLevel(ApiLog, conf.Log.ApiLevel); err != nil {
+	if err := setLogLevel(ApiLogger, conf.Log.ApiLevel); err != nil {
 		fmt.Println("[API server] Set api log level error : ", err)
 		return err
 	}

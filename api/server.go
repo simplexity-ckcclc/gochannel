@@ -17,23 +17,12 @@ var (
 
 func Serve() {
 
-	conf := common.Conf
-	if err := api.InitLogger(conf); err != nil {
-		panic(err)
-	}
-
-	db, err := api.OpenDB(common.Conf.Core.DSN)
-	defer db.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	if err := entity.LoadChannelSigs(api.DB); err != nil {
+	if err := entity.LoadChannelSigs(common.DB); err != nil {
 		panic(err)
 	}
 
 	server := &http.Server{
-		Addr:    conf.Api.Address,
+		Addr:    common.Conf.Api.Address,
 		Handler: router(),
 	}
 	if err := server.ListenAndServe(); err != nil {
@@ -79,7 +68,7 @@ func authRequired() gin.HandlerFunc {
 
 		valid, err := api.VerifyBase64WithRSAPubKey(nonce, common.Conf.Api.Internal.PublicKey, sig)
 		if err != nil {
-			api.ApiLog.WithFields(logrus.Fields{
+			common.ApiLogger.WithFields(logrus.Fields{
 				"pubKey": common.Conf.Api.Internal.PublicKey,
 			}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
 			api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
