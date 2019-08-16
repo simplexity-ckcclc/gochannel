@@ -22,5 +22,5 @@ message SdkDeviceReport {
     string os_version = 7;  // use for short-link match
     string language = 8;    // use for short-link match
     string resolution = 9;  // screen resolution, in format of '${wight}*${height}', use for short-link match
-    string source_ip = 10;  // screen resolution, in format of '${wight}*${height}', use for short-link match
+    string source_ip = 10;
 }
