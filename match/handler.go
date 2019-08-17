@@ -30,18 +30,10 @@ func (handler MatchHandler) handle(message []byte) {
 		}
 	}
 
-	// json
-	//var device pb.Device
-	//if err := json.Unmarshal(message, &device); err != nil {
-	//	fmt.Println("Failed to parse device :", err)
-	//} else {
-	//	fmt.Println(device)
-	//}
-
 }
 
 func insertIntoDB(device *pb.SdkDeviceReport) error {
-	stmt, err := common.DB.Prepare("INSERT INTO sdk_report (imei, idfa, app_key, channel, resolution, " +
+	stmt, err := common.DB.Prepare("INSERT INTO sdk_device_report (imei, idfa, app_key, channel_id, resolution, " +
 		"language, os_type, os_version, receive_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {

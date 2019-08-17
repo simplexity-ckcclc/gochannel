@@ -1,4 +1,4 @@
-package entity
+package channelsig
 
 import (
 	"database/sql"

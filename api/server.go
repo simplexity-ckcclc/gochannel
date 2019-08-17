@@ -2,13 +2,17 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
-	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
+)
+
+const (
+	nonceTTL = 5
 )
 
 var (
@@ -17,7 +21,7 @@ var (
 
 func Serve() {
 
-	if err := entity.LoadChannelSigs(common.DB); err != nil {
+	if err := channelsig.LoadChannelSigs(common.DB); err != nil {
 		panic(err)
 	}
 
@@ -89,7 +93,7 @@ func validateNonce(nonce string) bool {
 	// evict all expired nonce, inefficient, but works well since there is little internal request
 	now := time.Now()
 	for nonce, timestamp := range nonces {
-		if now.Sub(timestamp) > time.Duration(5*time.Minute) {
+		if now.Sub(timestamp) > time.Duration(nonceTTL*time.Minute) {
 			delete(nonces, nonce)
 		}
 	}

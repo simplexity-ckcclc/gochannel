@@ -1,4 +1,4 @@
-package entity
+package click
 
 import (
 	"database/sql"

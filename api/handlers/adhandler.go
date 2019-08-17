@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
+	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
-	"github.com/simplexity-ckcclc/gochannel/api/entity"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -13,13 +14,13 @@ import (
 
 // The request responds to a url matching:  /ad/click?appKey=foo&deviceId=bar&sig=
 func ClickHandler(c *gin.Context) {
-	var click entity.ClickInfo
+	var click click.ClickInfo
 	if err := c.ShouldBind(&click); err != nil {
 		api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
 		return
 	}
 
-	appkeySig, found := entity.SearchChannelSig(click.ChannelId)
+	appkeySig, found := channelsig.SearchChannelSig(click.ChannelId)
 	if !found {
 		api.ResponseJSON(c, http.StatusOK, api.CHANNEL_NOT_FOUND)
 		return
@@ -70,7 +71,7 @@ func ClickHandler(c *gin.Context) {
 	api.ResponseJSON(c, http.StatusOK, api.SUCCESS)
 }
 
-func buildSourceURL(click entity.ClickInfo) string {
+func buildSourceURL(click click.ClickInfo) string {
 	var sb strings.Builder
 	sb.WriteString("appKey=")
 	sb.WriteString(click.AppKey)
