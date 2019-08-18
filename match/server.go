@@ -8,7 +8,7 @@ import (
 
 func Serve() {
 	messages := make(chan []byte, 5)
-	handler := MatchHandler{}
+	handler := SdkMessageReceiver{}
 	go consumeMessage(messages, handler)
 
 	err := startKafkaConsumer(messages)
@@ -55,8 +55,8 @@ func startKafkaConsumer(messages chan<- []byte) error {
 	return nil
 }
 
-func consumeMessage(messages <-chan []byte, handler messageHandler) {
+func consumeMessage(messages <-chan []byte, handler messageReceiver) {
 	for msg := range messages {
-		handler.handle(msg)
+		handler.receive(msg)
 	}
 }

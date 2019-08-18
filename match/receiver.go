@@ -7,18 +7,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type messageHandler interface {
-	handle(message []byte)
+type messageReceiver interface {
+	receive(message []byte)
 }
 
-type MatchHandler struct {
+type SdkMessageReceiver struct {
 }
 
-func (handler MatchHandler) handle(message []byte) {
+func (receiver SdkMessageReceiver) receive(message []byte) {
 	device := &pb.SdkDeviceReport{}
 	if err := proto.Unmarshal(message, device); err != nil {
 		common.MatchLogger.Error("Parse device error : ", err)
 	} else {
+		if !validate(device) {
+			common.MatchLogger.WithFields(logrus.Fields{
+				"Device ": device,
+			}).Debug("Invalid sdk message")
+			return
+		}
+
 		if err := insertIntoDB(device); err != nil {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"Device ": device,
@@ -30,6 +37,10 @@ func (handler MatchHandler) handle(message []byte) {
 		}
 	}
 
+}
+
+func validate(device *pb.SdkDeviceReport) bool {
+	return device != nil && device.GetAppKey() != "" && device.GetReceiveTime() != nil
 }
 
 func insertIntoDB(device *pb.SdkDeviceReport) error {
