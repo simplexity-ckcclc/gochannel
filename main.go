@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/simplexity-ckcclc/gochannel/api"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/simplexity-ckcclc/gochannel/match"
 )
 
@@ -17,16 +18,15 @@ func main() {
 
 	// load config
 	var err error
-	if err = common.LoadConf(confPath); err != nil {
+	if err = config.LoadConf(confPath); err != nil {
 		panic(err)
 	}
 
-	conf := common.Conf
-	if err := common.InitLogger(conf); err != nil {
+	if err := common.InitLogger(); err != nil {
 		panic(err)
 	}
 
-	db, err := common.OpenDB(conf)
+	db, err := common.OpenDB()
 	defer db.Close()
 	if err != nil {
 		panic(err)

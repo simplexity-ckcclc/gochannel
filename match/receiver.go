@@ -4,6 +4,7 @@ import (
 	"github.com/bsm/sarama-cluster"
 	"github.com/golang/protobuf/proto"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/config"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
 	"github.com/sirupsen/logrus"
 	"log"
@@ -28,15 +29,15 @@ func (receiver SdkMsgReceiver) ConsumeMessage() {
 
 func (receiver SdkMsgReceiver) consumeKafkaMsg() {
 	// init (custom) config, enable errors and notifications
-	config := cluster.NewConfig()
-	config.Consumer.Return.Errors = true
-	config.Group.Return.Notifications = true
+	consumerConfig := cluster.NewConfig()
+	consumerConfig.Consumer.Return.Errors = true
+	consumerConfig.Group.Return.Notifications = true
 
 	// init consumer
-	brokers := common.Conf.Kafka.Consumer.BootstrapServer
-	topics := common.Conf.Kafka.Consumer.Topic
-	groupId := common.Conf.Kafka.Consumer.GroupId
-	consumer, err := cluster.NewConsumer(brokers, groupId, topics, config)
+	brokers := config.GetStringSlice(config.KafkaBootstrapServer)
+	topics := config.GetStringSlice(config.KafkaTopic)
+	groupId := config.GetString(config.KafkaGroupId)
+	consumer, err := cluster.NewConsumer(brokers, groupId, topics, consumerConfig)
 	if err != nil {
 		panic(err)
 	}

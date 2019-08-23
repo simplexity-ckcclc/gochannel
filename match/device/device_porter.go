@@ -2,11 +2,9 @@ package device
 
 import (
 	"database/sql"
-	"github.com/simplexity-ckcclc/gochannel/common"
 )
 
 type DevicePorter struct {
-	conf common.ConfYaml
 	db   sql.DB
 }
 

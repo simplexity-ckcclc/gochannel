@@ -1,23 +1,28 @@
-core:
-  database:
-    dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
-    max-open-conns: 5
-    max-idle-conns: 2
-api:
-  address: :8480 
-  internal:
-    publicKey: MIGJAoGBAJaxeQZ0W3/DJUJQy5qoV52UQ3Urxrv4yL0dhqBuBhPItFYa4zQxKdapvMnbaiHpLkIwPN1E5rlQDAAPwO2oNPrb9n0v8zoX4DyOFS9uXjjUBstEqgjA8MfWz5ChvlcuoEqDFcMYsAbBMTBOdjVw6XBPuely9ZCu6Zfj7LrSuGqZAgMBAAE=
-kafka:
-  consumer: 
-    bootstrap-server: 
-      - localhost:9092
-    topic: 
-      - gochannel
-    group-id: gochannel_group
+database:
+  dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
+  max-open-conns: 5
+  max-idle-conns: 2
 
-log:
-  # text or json
-  format: "text"
-  # stdout: output to console, or define log path like "log/access_log"
-  apiLog: "stdout"
-  apiLevel: "debug"
+logger:
+  api:
+    # text or json
+    format: "text"
+    # stdout: output to console, or define log path like "log/access_log"
+    output: "stdout"
+    level: "debug"
+  match:
+    format: "text"
+    output: "stdout"
+    level: "debug"
+
+api.server:
+  address: :8480
+  internal.pub-key: MIGJAoGBAJaxeQZ0W3/DJUJQy5qoV52UQ3Urxrv4yL0dhqBuBhPItFYa4zQxKdapvMnbaiHpLkIwPN1E5rlQDAAPwO2oNPrb9n0v8zoX4DyOFS9uXjjUBstEqgjA8MfWz5ChvlcuoEqDFcMYsAbBMTBOdjVw6XBPuely9ZCu6Zfj7LrSuGqZAgMBAAE=
+
+kafka:
+  bootstrap-server:
+      - localhost:9092
+  topic:
+      - gochannel
+  group-id: gochannel_group
+

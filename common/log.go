@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -11,19 +12,30 @@ var (
 	MatchLogger *logrus.Logger
 )
 
-func InitLogger(conf ConfYaml) error {
+func InitLogger() error {
 	ApiLogger = logrus.New()
-	setLogFormat(ApiLogger, conf.Log.Format)
-	if err := setLogOutput(ApiLogger, conf.Log.ApiLog); err != nil {
-		fmt.Println("[API server] Set api log output error : ", err)
+	setLogFormat(ApiLogger, config.GetString(config.LogApiFormat))
+	if err := setLogOutput(ApiLogger, config.GetString(config.LogApiOutput)); err != nil {
+		fmt.Println("[API server] Set log output error : ", err)
 		return err
 	}
 
-	if err := setLogLevel(ApiLogger, conf.Log.ApiLevel); err != nil {
-		fmt.Println("[API server] Set api log level error : ", err)
+	if err := setLogLevel(ApiLogger, config.GetString(config.LogApiLevel)); err != nil {
+		fmt.Println("[API server] Set log level error : ", err)
 		return err
 	}
 
+	MatchLogger = logrus.New()
+	setLogFormat(MatchLogger, config.GetString(config.LogMatchFormat))
+	if err := setLogOutput(ApiLogger, config.GetString(config.LogMatchOutput)); err != nil {
+		fmt.Println("[API server] Set log output error : ", err)
+		return err
+	}
+
+	if err := setLogLevel(MatchLogger, config.GetString(config.LogMatchLevel)); err != nil {
+		fmt.Println("[API server] Set log level error : ", err)
+		return err
+	}
 	return nil
 }
 
@@ -51,7 +63,7 @@ func setLogOutput(log *logrus.Logger, outString string) error {
 		}
 		log.SetOutput(f)
 	}
-	fmt.Println("[API server] Set api log output : ", outString)
+	fmt.Println("[API server] Set log output : ", outString)
 	return nil
 }
 
@@ -63,6 +75,6 @@ func setLogLevel(log *logrus.Logger, levelString string) error {
 		return err
 	}
 	log.SetLevel(level)
-	fmt.Println("[API server] Set api log level : ", levelString)
+	fmt.Println("[API server] Set log level : ", levelString)
 	return nil
 }
