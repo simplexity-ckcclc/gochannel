@@ -1,20 +1,72 @@
 package match
 
 import (
+	"github.com/bsm/sarama-cluster"
 	"github.com/golang/protobuf/proto"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
 	"github.com/sirupsen/logrus"
+	"log"
 )
 
-type messageReceiver interface {
-	receive(message []byte)
+type SdkMsgReceiver struct {
+	SdkMsgChannel chan []byte
+	SdkMsgHandler
 }
 
-type SdkMessageReceiver struct {
+type SdkMsgHandler interface {
+	handle(message []byte)
 }
 
-func (receiver SdkMessageReceiver) receive(message []byte) {
+func (receiver SdkMsgReceiver) ConsumeMessage() {
+	go receiver.consumeKafkaMsg()
+
+	for msg := range receiver.SdkMsgChannel {
+		receiver.handle(msg)
+	}
+}
+
+func (receiver SdkMsgReceiver) consumeKafkaMsg() {
+	// init (custom) config, enable errors and notifications
+	config := cluster.NewConfig()
+	config.Consumer.Return.Errors = true
+	config.Group.Return.Notifications = true
+
+	// init consumer
+	brokers := common.Conf.Kafka.Consumer.BootstrapServer
+	topics := common.Conf.Kafka.Consumer.Topic
+	groupId := common.Conf.Kafka.Consumer.GroupId
+	consumer, err := cluster.NewConsumer(brokers, groupId, topics, config)
+	if err != nil {
+		panic(err)
+	}
+
+	// consume errors
+	go func() {
+		for err := range consumer.Errors() {
+			log.Println("Error:", err.Error())
+		}
+	}()
+
+	// consume notifications
+	go func() {
+		for ntf := range consumer.Notifications() {
+			log.Println("Rebalanced: ", ntf)
+		}
+	}()
+
+	// consume messages, watch signals
+	msgChan := receiver.SdkMsgChannel
+	for msg := range consumer.Messages() {
+		msgChan <- msg.Value
+		consumer.MarkOffset(msg, "") // mark message as processed
+	}
+}
+
+type PbSdkMsgHandler struct {
+}
+
+func (handler PbSdkMsgHandler) handle(message []byte) {
 	device := &pb.SdkDeviceReport{}
 	if err := proto.Unmarshal(message, device); err != nil {
 		common.MatchLogger.Error("Parse device error : ", err)
