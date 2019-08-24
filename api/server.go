@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
+	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/common"
@@ -26,6 +27,12 @@ func Serve() {
 		panic(err)
 	}
 
+	clickPorter, err := click.NewClickPorter(common.DB)
+	if err != nil {
+		panic(err)
+	}
+	go clickPorter.TransferClicks()
+
 	server := &http.Server{
 		Addr:    config.GetString(config.ApiServerAddress),
 		Handler: router(),
@@ -34,6 +41,7 @@ func Serve() {
 		panic(err)
 	}
 	common.ApiLogger.Info("API server started!")
+
 }
 
 func router() *gin.Engine {

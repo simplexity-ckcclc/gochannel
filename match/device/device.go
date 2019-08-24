@@ -8,15 +8,15 @@ const (
 )
 
 type Device struct {
-	Id          int64
-	Imei        string
-	Idfa        string
-	ReceiveTime int64
-	Channel     string
-	AppKey      string
-	OsType      OsType
-	OsVersion   string
-	Language    string
-	Resolution  string
-	SourceIp    string
+	Id          int64  `json:"id"`
+	Imei        string `json:"imei"`
+	Idfa        string `json:"idfa"`
+	ReceiveTime int64  `json:"receiveTime"`
+	Channel     string `json:"channel"`
+	AppKey      string `json:"appKey"`
+	OsType      OsType `json:"osType"`
+	OsVersion   string `json:"osVersion"`
+	Language    string `json:"language"`
+	Resolution  string `json:"resolution"`
+	SourceIp    string `json:"sourceIp"`
 }

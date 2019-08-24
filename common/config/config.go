@@ -9,22 +9,28 @@ import (
 
 const (
 	DatabaseDsn         = "database.dsn"
-	DatabaseMaxOpenCons  = "database.max-open-conns"
+	DatabaseMaxOpenCons = "database.max-open-conns"
 	DatabaseMaxIdleCons = "database.max-idle-conns"
 
-	LogApiFormat = "logger.api.format"
-	LogApiOutput = "logger.api.output"
-	LogApiLevel = "logger.api.level"
+	LogApiFormat   = "logger.api.format"
+	LogApiOutput   = "logger.api.output"
+	LogApiLevel    = "logger.api.level"
 	LogMatchFormat = "logger.match.format"
 	LogMatchOutput = "logger.match.output"
-	LogMatchLevel = "logger.match.level"
+	LogMatchLevel  = "logger.match.level"
 
-	ApiServerAddress = "api.server.address"
+	EsServer          = "elastic.server"
+	EsDeviceIndex     = "elastic.device.index"
+	EsDeviceBatchSize = "elastic.device.batch-size"
+	EsClickIndex      = "elastic.click.index"
+	EsClickBatchSize  = "elastic.click.batch-size"
+
+	ApiServerAddress    = "api.server.address"
 	ApiServerIntlPubKey = "api.server.internal.pub-key"
 
 	KafkaBootstrapServer = "kafka.bootstrap-server"
-	KafkaTopic = "kafka.topic"
-	KafkaGroupId = "kafka.group-id"
+	KafkaTopic           = "kafka.topic"
+	KafkaGroupId         = "kafka.group-id"
 )
 
 // LoadConf load config from file and read in environment variables that match
@@ -62,7 +68,6 @@ func GetString(key string) string {
 func GetStringSlice(key string) []string {
 	return viper.GetStringSlice(key)
 }
-
 
 func GetInt(key string) int {
 	return viper.GetInt(key)
