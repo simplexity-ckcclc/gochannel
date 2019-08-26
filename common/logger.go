@@ -15,26 +15,38 @@ var (
 func InitLogger() error {
 	ApiLogger = logrus.New()
 	setLogFormat(ApiLogger, config.GetString(config.LogApiFormat))
-	if err := setLogOutput(ApiLogger, config.GetString(config.LogApiOutput)); err != nil {
+	apiOutput := config.GetString(config.LogApiOutput)
+	if err := setLogOutput(ApiLogger, apiOutput); err != nil {
 		fmt.Println("[API server] Set log output error : ", err)
 		return err
+	} else {
+		fmt.Println("[API server] Set log output : ", apiOutput)
 	}
 
-	if err := setLogLevel(ApiLogger, config.GetString(config.LogApiLevel)); err != nil {
+	apiLevel := config.GetString(config.LogApiLevel)
+	if err := setLogLevel(ApiLogger, apiLevel); err != nil {
 		fmt.Println("[API server] Set log level error : ", err)
 		return err
+	} else {
+		fmt.Println("[API server] Set log level : ", apiLevel)
 	}
 
 	MatchLogger = logrus.New()
 	setLogFormat(MatchLogger, config.GetString(config.LogMatchFormat))
-	if err := setLogOutput(ApiLogger, config.GetString(config.LogMatchOutput)); err != nil {
-		fmt.Println("[API server] Set log output error : ", err)
+	matchOutput := config.GetString(config.LogMatchOutput)
+	if err := setLogOutput(ApiLogger, matchOutput); err != nil {
+		fmt.Println("[Match server] Set log output error : ", err)
 		return err
+	} else {
+		fmt.Println("[Match server] Set log output : ", matchOutput)
 	}
 
-	if err := setLogLevel(MatchLogger, config.GetString(config.LogMatchLevel)); err != nil {
-		fmt.Println("[API server] Set log level error : ", err)
+	matchLevel := config.GetString(config.LogMatchLevel)
+	if err := setLogLevel(MatchLogger, matchLevel); err != nil {
+		fmt.Println("[Match server] Set log level error : ", err)
 		return err
+	} else {
+		fmt.Println("[Match server] Set log level : ", matchLevel)
 	}
 	return nil
 }
@@ -63,7 +75,6 @@ func setLogOutput(log *logrus.Logger, outString string) error {
 		}
 		log.SetOutput(f)
 	}
-	fmt.Println("[API server] Set log output : ", outString)
 	return nil
 }
 
@@ -75,6 +86,5 @@ func setLogLevel(log *logrus.Logger, levelString string) error {
 		return err
 	}
 	log.SetLevel(level)
-	fmt.Println("[API server] Set log level : ", levelString)
 	return nil
 }

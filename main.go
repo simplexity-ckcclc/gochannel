@@ -36,6 +36,8 @@ func main() {
 	go match.Serve()
 
 	// start api-server
-	api.Serve()
+	go api.Serve()
 
+	running := make(chan bool, 1)
+	<-running
 }
