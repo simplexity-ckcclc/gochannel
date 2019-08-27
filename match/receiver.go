@@ -7,7 +7,6 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
 	"github.com/sirupsen/logrus"
-	"log"
 )
 
 type SdkMsgReceiver struct {
@@ -45,14 +44,14 @@ func (receiver SdkMsgReceiver) consumeKafkaMsg() {
 	// consume errors
 	go func() {
 		for err := range consumer.Errors() {
-			log.Println("Error:", err.Error())
+			common.MatchLogger.Error("Kafka consumer error", err)
 		}
 	}()
 
 	// consume notifications
 	go func() {
 		for ntf := range consumer.Notifications() {
-			log.Println("Rebalanced: ", ntf)
+			common.MatchLogger.Debug("Kafka rebalanced notifications : ", ntf)
 		}
 	}()
 

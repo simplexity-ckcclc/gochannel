@@ -37,3 +37,11 @@ CREATE TABLE `sdk_device_report` (
   `source_ip` varchar(45) DEFAULT '' COMMENT '源IP',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `app_key_process_info`;
+CREATE TABLE `app_key_process_info` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `app_key` varchar(45) NOT NULL DEFAULT '' COMMENT 'App应用标识',
+  `process_time` int(20) NOT NULL DEFAULT '' COMMENT '已完成处理的最新时间戳',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

@@ -81,7 +81,7 @@ func contains(a []string, x string) bool {
 }
 
 func (handler DeviceHandler) scanAppKeys() ([]string, error) {
-	rows, err := handler.db.Query(`SELECT app_key FROM channel_sig`)
+	rows, err := handler.db.Query(`SELECT DISTINCT app_key FROM channel_sig`)
 	if err != nil {
 		return nil, err
 	}
