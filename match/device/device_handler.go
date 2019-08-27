@@ -3,18 +3,21 @@ package device
 import (
 	"database/sql"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"gopkg.in/olivere/elastic.v6"
 	"time"
 )
 
 type DeviceHandler struct {
 	db          *sql.DB
+	esClient    *elastic.Client
 	appHandlers map[string]DeviceAppHandler
 	stopChan    chan bool
 }
 
-func NewDeviceHandler() DeviceHandler {
+func NewDeviceHandler(database *sql.DB, client *elastic.Client) DeviceHandler {
 	return DeviceHandler{
-		db:          common.DB,
+		db:          database,
+		esClient:    client,
 		appHandlers: make(map[string]DeviceAppHandler),
 		stopChan:    make(chan bool, 1),
 	}
@@ -54,6 +57,7 @@ func (handler DeviceHandler) startNewAppHandler() {
 			// New appKey, start new DeviceAppHandler
 			appHandler := DeviceAppHandler{
 				appKey:   appKey,
+				esClient: handler.esClient,
 				stopChan: make(chan bool, 1),
 			}
 			handler.appHandlers[appKey] = appHandler

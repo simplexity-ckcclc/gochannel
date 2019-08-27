@@ -17,16 +17,11 @@ type ClickPorter struct {
 	esClient *elastic.Client
 }
 
-func NewClickPorter(database *sql.DB) (*ClickPorter, error) {
-	client, err := elastic.NewClient(elastic.SetURL(config.GetString(config.EsServer)))
-	if err != nil {
-		return nil, err
-	}
-
+func NewClickPorter(database *sql.DB, client *elastic.Client) *ClickPorter {
 	return &ClickPorter{
 		db:       database,
 		esClient: client,
-	}, nil
+	}
 }
 
 func (porter ClickPorter) TransferClicks() {

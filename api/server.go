@@ -27,10 +27,7 @@ func Serve() {
 		panic(err)
 	}
 
-	clickPorter, err := click.NewClickPorter(common.DB)
-	if err != nil {
-		panic(err)
-	}
+	clickPorter := click.NewClickPorter(common.DB, common.EsClient)
 	go clickPorter.TransferClicks()
 
 	server := &http.Server{

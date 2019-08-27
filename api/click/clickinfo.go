@@ -7,11 +7,11 @@ import (
 
 type ClickInfo struct {
 	Id        int64  `json:"id"`
-	AppKey    string `json:"appKey" form:"appKey" binding:"required"`
-	ChannelId string `json:"channelId" form:"channelId" binding:"required"`
-	DeviceId  string `json:"deviceId" form:"deviceId" binding:"required"` // idfa or imei
-	OsType    string `json:"osType" form:"osType" binding:"required"`     // idfa or imei
-	ClickTime int64  `json:"clickTime" form:"clickTime" binding:"required"`
+	AppKey    string `json:"app_key" form:"appKey" binding:"required"`
+	ChannelId string `json:"channel_id" form:"channelId" binding:"required"`
+	DeviceId  string `json:"device_id" form:"deviceId" binding:"required"` // idfa or imei
+	OsType    string `json:"os_type" form:"osType" binding:"required"`     // idfa or imei
+	ClickTime int64  `json:"click_time" form:"clickTime" binding:"required"`
 }
 
 func (clickInfo *ClickInfo) InsertDB(db *sql.DB) error {

@@ -1,28 +1,27 @@
 package device
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
+	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/olivere/elastic.v6"
 	"time"
 )
 
+type DeviceStatus int
+
+const Processed DeviceStatus = iota
+
 type DeviceAppHandler struct {
 	appKey   string
+	esClient *elastic.Client
 	stopChan chan bool
 }
 
 func (handler DeviceAppHandler) start() {
-	latestProcessTime, err := latestProcessTime(handler.appKey)
-	if err == sql.ErrNoRows {
-		latestProcessTime = time.Now().Add(-3 * 24 * time.Hour).Unix()
-	} else if err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
-			"appKey": handler.appKey,
-		}).Error("Get app_key last process time error")
-	}
-
 runningLoop:
 	for {
 		select {
@@ -32,7 +31,13 @@ runningLoop:
 			}).Info("Device App Handler stop")
 			break runningLoop
 		default:
-			fmt.Println(latestProcessTime)
+			latestProcessTime := latestProcessTime(handler.appKey)
+			if latestProcessTime == 0 {
+				// New appKey, process the last 3 days
+				latestProcessTime = time.Now().Add(-3 * 24 * time.Hour).Unix()
+			}
+
+			//fmt.Println(latestProcessTime)
 			//todo start process
 		}
 	}
@@ -42,7 +47,52 @@ func (handler DeviceAppHandler) stop() {
 	handler.stopChan <- true
 }
 
-func latestProcessTime(appKey string) (processTime int64, err error) {
-	err = common.DB.QueryRow("SELECT process_time FROM app_key_process_info WHERE app_key = ?", appKey).Scan(&processTime)
+func latestProcessTime(appKey string) (processTime int64) {
+	if err := common.DB.QueryRow("SELECT process_time FROM app_key_process_info WHERE app_key = ?", appKey).Scan(&processTime); err != nil && err != sql.ErrNoRows {
+		common.MatchLogger.WithFields(logrus.Fields{
+			"appKey": appKey,
+		}).Error("Get app_key last process time error")
+	}
 	return
+}
+
+func updateLatestProcessTime(appKey string, processTime int64) error {
+	stmt, err := common.DB.Prepare("INSERT INTO app_key_process_info (app_key, process_time) VALUES (?, ?) ON DUPLICATE KEY UPDATE process_time = ?")
+	defer stmt.Close()
+	if err != nil {
+		return err
+	}
+
+	if _, err = stmt.Exec(appKey, processTime, processTime); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (handler DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) []Device {
+	index := config.GetString(config.EsClickIndex)
+	query := elastic.NewBoolQuery().
+		MustNot(elastic.NewTermQuery("status", Processed)).
+		Must(elastic.NewTermQuery("app_key", handler.appKey)).
+		Must(elastic.NewRangeQuery("receive_time").Gte(startTime).Lt(endTime))
+
+	esResponse, _ := handler.esClient.Search().
+		Index(index).
+		Type(handler.appKey).
+		Query(query).
+		Sort("receive_time", true).
+		Size(batchSize).
+		Do(context.Background())
+
+	var devices []Device
+	var device Device
+	for _, value := range esResponse.Hits.Hits {
+		if err := json.Unmarshal(*value.Source, &device); err != nil {
+			common.MatchLogger.WithFields(logrus.Fields{
+				"value": value.Source,
+			}).Error("Construct device from es error", err)
+		}
+		devices = append(devices, device)
+	}
+	return devices
 }

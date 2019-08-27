@@ -17,16 +17,11 @@ type DevicePorter struct {
 	esClient *elastic.Client
 }
 
-func NewDevicePorter(database *sql.DB) (*DevicePorter, error) {
-	client, err := elastic.NewClient(elastic.SetURL(config.GetString(config.EsServer)))
-	if err != nil {
-		return nil, err
-	}
-
+func NewDevicePorter(database *sql.DB, client *elastic.Client) *DevicePorter {
 	return &DevicePorter{
 		db:       database,
 		esClient: client,
-	}, nil
+	}
 }
 
 func (porter DevicePorter) TransferDevices() {

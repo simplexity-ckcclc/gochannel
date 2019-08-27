@@ -14,14 +14,12 @@ func Serve() {
 	go receiver.ConsumeMessage()
 
 	// transfer devices from mysql to es
-	devicePorter, err := device.NewDevicePorter(common.DB)
-	if err != nil {
-		panic(err)
-	}
+	devicePorter := device.NewDevicePorter(common.DB, common.EsClient)
 	go devicePorter.TransferDevices()
 
 	// bulk get devices from es and then run match process
-	deviceHandler := device.NewDeviceHandler()
+	deviceHandler := device.NewDeviceHandler(common.DB, common.EsClient)
 	go deviceHandler.Start()
 
+	common.MatchLogger.Info("Match server started")
 }

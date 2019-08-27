@@ -12,21 +12,21 @@ var (
 	MatchLogger *logrus.Logger
 )
 
-func InitLogger() error {
+func InitLogger() (err error) {
 	ApiLogger = logrus.New()
 	setLogFormat(ApiLogger, config.GetString(config.LogApiFormat))
 	apiOutput := config.GetString(config.LogApiOutput)
-	if err := setLogOutput(ApiLogger, apiOutput); err != nil {
+	if err = setLogOutput(ApiLogger, apiOutput); err != nil {
 		fmt.Println("[API server] Set log output error : ", err)
-		return err
+		return
 	} else {
 		fmt.Println("[API server] Set log output : ", apiOutput)
 	}
 
 	apiLevel := config.GetString(config.LogApiLevel)
-	if err := setLogLevel(ApiLogger, apiLevel); err != nil {
+	if err = setLogLevel(ApiLogger, apiLevel); err != nil {
 		fmt.Println("[API server] Set log level error : ", err)
-		return err
+		return
 	} else {
 		fmt.Println("[API server] Set log level : ", apiLevel)
 	}
@@ -34,21 +34,21 @@ func InitLogger() error {
 	MatchLogger = logrus.New()
 	setLogFormat(MatchLogger, config.GetString(config.LogMatchFormat))
 	matchOutput := config.GetString(config.LogMatchOutput)
-	if err := setLogOutput(ApiLogger, matchOutput); err != nil {
+	if err = setLogOutput(ApiLogger, matchOutput); err != nil {
 		fmt.Println("[Match server] Set log output error : ", err)
-		return err
+		return
 	} else {
 		fmt.Println("[Match server] Set log output : ", matchOutput)
 	}
 
 	matchLevel := config.GetString(config.LogMatchLevel)
-	if err := setLogLevel(MatchLogger, matchLevel); err != nil {
+	if err = setLogLevel(MatchLogger, matchLevel); err != nil {
 		fmt.Println("[Match server] Set log level error : ", err)
-		return err
+		return
 	} else {
 		fmt.Println("[Match server] Set log level : ", matchLevel)
 	}
-	return nil
+	return
 }
 
 func setLogFormat(log *logrus.Logger, format string) {

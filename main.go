@@ -22,15 +22,10 @@ func main() {
 		panic(err)
 	}
 
-	if err := common.InitLogger(); err != nil {
+	if err = initiate(); err != nil {
 		panic(err)
 	}
-
-	db, err := common.OpenDB()
-	defer db.Close()
-	if err != nil {
-		panic(err)
-	}
+	defer destroy()
 
 	// start match-Server
 	go match.Serve()
@@ -40,4 +35,26 @@ func main() {
 
 	running := make(chan bool, 1)
 	<-running
+}
+
+func initiate() (err error) {
+	if err = common.InitLogger(); err != nil {
+		return
+	}
+
+	if _, err = common.InitSqlClient(); err != nil {
+		return
+	}
+
+	// init es client
+	if _, err = common.InitEsClient(); err != nil {
+		return
+	}
+
+	return
+}
+
+func destroy() {
+	_ = common.DB.Close()
+	common.EsClient.Stop()
 }

@@ -44,7 +44,7 @@ func (receiver SdkMsgReceiver) consumeKafkaMsg() {
 	// consume errors
 	go func() {
 		for err := range consumer.Errors() {
-			common.MatchLogger.Error("Kafka consumer error", err)
+			common.MatchLogger.Error("Kafka consumer error : ", err)
 		}
 	}()
 
