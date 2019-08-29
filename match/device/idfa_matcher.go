@@ -10,20 +10,25 @@ type IdfaMatcher struct {
 	esClient *elastic.Client
 }
 
-func (matcher IdfaMatcher) match(device Device) (matchedDevice *MatchedDevice) {
+func (matcher IdfaMatcher) match(device Device) (matched bool, matchedDevice *MatchedDevice, err error) {
 	index := config.GetString(config.EsClickIndex)
 	query := elastic.NewBoolQuery().
 		Must(elastic.NewTermQuery("app_key.keyword", device.AppKey)).
 		Must(elastic.NewTermQuery("device_id.keyword", device.Imei)).
 		Must(elastic.NewRangeQuery("click_time").Lt(device.ActivateTime))
 
-	esResponse, _ := matcher.esClient.Search().
+	esResponse, esErr := matcher.esClient.Search().
 		Index(index).
 		Type(device.AppKey).
 		Query(query).
 		Sort("click_time", false).
 		Do(context.Background())
+	if esErr != nil {
+		err = esErr
+		return
+	}
 
+	matched = false
 	searchHits := esResponse.Hits
 	if searchHits.TotalHits <= 0 {
 		return
@@ -36,7 +41,7 @@ func (matcher IdfaMatcher) match(device Device) (matchedDevice *MatchedDevice) {
 	}
 
 	matchedDevice = &MatchedDevice{
-		Device:         device,
+		Device:         &device,
 		MatchedChannel: recentHit.Fields["channel"].(string),
 		ClickTime:      clickTime,
 	}

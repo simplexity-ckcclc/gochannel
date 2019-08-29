@@ -22,7 +22,7 @@ type Device struct {
 }
 
 type MatchedDevice struct {
-	Device         Device
+	*Device
 	MatchedChannel string
 	ClickTime      int64
 }

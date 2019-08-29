@@ -53,7 +53,7 @@ func (handler DeviceAppHandler) stop() {
 }
 
 func latestProcessTime(appKey string) (processTime int64) {
-	if err := common.DB.QueryRow("SELECT process_time FROM app_key_process_info WHERE app_key = ?", appKey).Scan(&processTime); err != nil && err != sql.ErrNoRows {
+	if err := common.DB.QueryRow("SELECT process_time FROM app_process_info WHERE app_key = ?", appKey).Scan(&processTime); err != nil && err != sql.ErrNoRows {
 		common.MatchLogger.WithFields(logrus.Fields{
 			"appKey": appKey,
 		}).Error("Get app_key last process time error")
@@ -62,7 +62,7 @@ func latestProcessTime(appKey string) (processTime int64) {
 }
 
 func updateLatestProcessTime(appKey string, processTime int64) error {
-	stmt, err := common.DB.Prepare("INSERT INTO app_key_process_info (app_key, process_time) VALUES (?, ?) ON DUPLICATE KEY UPDATE process_time = ?")
+	stmt, err := common.DB.Prepare("INSERT INTO app_process_info (app_key, process_time) VALUES (?, ?) ON DUPLICATE KEY UPDATE process_time = ?")
 	defer stmt.Close()
 	if err != nil {
 		return err
