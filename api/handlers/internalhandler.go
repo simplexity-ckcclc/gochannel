@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
+	"github.com/simplexity-ckcclc/gochannel/api/appchannel"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
@@ -12,7 +12,7 @@ import (
 // The request responds to a url matching:  /internal/channel/:channel/evict?nonce=xx&sig=
 func EvictChannelHandler(c *gin.Context) {
 	channelId := c.Param("channel")
-	if err := channelsig.EvictChannelSig(common.DB, channelId); err != nil {
+	if err := appchannel.EvictAppChannel(common.DB, channelId); err != nil {
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
 		return
 	}
@@ -32,12 +32,12 @@ func RegisterChannelHandler(c *gin.Context) {
 		return
 	}
 
-	if _, found := channelsig.SearchChannelSig(channelId); found {
+	if _, found := appchannel.SearchAppChannel(channelId); found {
 		api.ResponseJSON(c, http.StatusOK, api.DUPLICATE_CHANNEL)
 		return
 	}
 
-	sig, err := channelsig.RegisterChannelSig(common.DB, appkey, channelId)
+	sig, err := appchannel.RegisterChannelSig(common.DB, appkey, channelId)
 	if err != nil {
 		common.ApiLogger.Warning("RegisterChannelSig error : ", err)
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())

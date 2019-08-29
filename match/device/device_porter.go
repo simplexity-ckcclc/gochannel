@@ -48,7 +48,7 @@ func (porter DevicePorter) TransferDevices() {
 
 func (porter DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	rows, err := porter.db.Query(`SELECT id, idfa, imei, app_key, os_type, os_version, source_ip, 
-        language, resolution, receive_time FROM sdk_device_report limit` + strconv.Itoa(limit))
+        language, resolution, activate_time FROM sdk_device_report limit` + strconv.Itoa(limit))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (porter DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	for rows.Next() {
 		device := new(Device)
 		if err = rows.Scan(&device.Id, &device.Idfa, &device.Imei, &device.AppKey, &device.OsType, &device.OsVersion,
-			&device.SourceIp, &device.Language, &device.Resolution, &device.ReceiveTime); err != nil {
+			&device.SourceIp, &device.Language, &device.Resolution, &device.ActivateTime); err != nil {
 			return nil, err
 		}
 		devices = append(devices, *device)

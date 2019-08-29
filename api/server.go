@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
+	"github.com/simplexity-ckcclc/gochannel/api/appchannel"
 	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
@@ -23,7 +23,7 @@ var (
 
 func Serve() {
 
-	if err := channelsig.LoadChannelSigs(common.DB); err != nil {
+	if err := appchannel.LoadChannelSigs(common.DB); err != nil {
 		panic(err)
 	}
 

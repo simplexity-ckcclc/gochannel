@@ -94,17 +94,17 @@ func (handler PbSdkMsgHandler) handle(message []byte) {
 }
 
 func validate(device *pb.SdkDeviceReport) bool {
-	return device != nil && device.GetAppKey() != "" && device.GetReceiveTime() != nil
+	return device != nil && device.GetAppKey() != "" && device.GetActivateTime() != nil
 }
 
 func insertIntoDB(device *pb.SdkDeviceReport) error {
-	rtime, err := ptypes.Timestamp(device.ReceiveTime)
+	rtime, err := ptypes.Timestamp(device.ActivateTime)
 	if err != nil {
 		return nil
 	}
 
 	_, err = common.DB.Exec("INSERT INTO sdk_device_report (imei, idfa, app_key, channel_id, resolution, "+
-		"language, os_type, os_version, receive_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"language, os_type, os_version, activate_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		device.Imei, device.Idfa, device.AppKey, device.Channel, device.Resolution,
 		device.Language, device.OsType.String(), device.OsVersion, rtime.UnixNano()/int64(time.Millisecond),
 		device.SourceIp)

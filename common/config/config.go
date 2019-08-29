@@ -31,6 +31,8 @@ const (
 	KafkaBootstrapServer = "kafka.bootstrap-server"
 	KafkaTopic           = "kafka.topic"
 	KafkaGroupId         = "kafka.group-id"
+
+	ActivateValidPeriod = "activate.valid-period"
 )
 
 // LoadConf load config from file and read in environment variables that match
@@ -71,4 +73,8 @@ func GetStringSlice(key string) []string {
 
 func GetInt(key string) int {
 	return viper.GetInt(key)
+}
+
+func GetInt64(key string) int64 {
+	return viper.GetInt64(key)
 }

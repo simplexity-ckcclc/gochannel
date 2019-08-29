@@ -49,16 +49,19 @@ func (handler DeviceHandler) Stop() {
 func (handler DeviceHandler) startNewAppHandler() {
 	appKeys, err := handler.scanAppKeys()
 	if err != nil {
-		common.MatchLogger.Error("Select app_key from table channel_sig error")
+		common.MatchLogger.Error("Select app_key from table app_channel error")
 	}
 
 	for _, appKey := range appKeys {
 		if _, ok := handler.appHandlers[appKey]; !ok {
 			// New appKey, start new DeviceAppHandler
+			var matchers []Matcher
+			// todo add matchers
 			appHandler := DeviceAppHandler{
 				appKey:   appKey,
 				esClient: handler.esClient,
 				stopChan: make(chan bool, 1),
+				matchers: matchers,
 			}
 			handler.appHandlers[appKey] = appHandler
 			go appHandler.start()
@@ -85,7 +88,7 @@ func contains(a []string, x string) bool {
 }
 
 func (handler DeviceHandler) scanAppKeys() ([]string, error) {
-	rows, err := handler.db.Query(`SELECT DISTINCT app_key FROM channel_sig`)
+	rows, err := handler.db.Query(`SELECT DISTINCT app_key FROM app_channel`)
 	if err != nil {
 		return nil, err
 	}

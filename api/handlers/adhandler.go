@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/simplexity-ckcclc/gochannel/api/channelsig"
+	"github.com/simplexity-ckcclc/gochannel/api/appchannel"
 	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/common"
@@ -20,7 +20,7 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 
-	appkeySig, found := channelsig.SearchChannelSig(click.ChannelId)
+	appkeySig, found := appchannel.SearchAppChannel(click.ChannelId)
 	if !found {
 		api.ResponseJSON(c, http.StatusOK, api.CHANNEL_NOT_FOUND)
 		return

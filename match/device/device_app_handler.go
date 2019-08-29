@@ -20,6 +20,7 @@ type DeviceAppHandler struct {
 	appKey   string
 	esClient *elastic.Client
 	stopChan chan bool
+	matchers []Matcher
 }
 
 func (handler DeviceAppHandler) start() {
@@ -78,13 +79,13 @@ func (handler DeviceAppHandler) getDevices(startTime int64, endTime int64, batch
 	query := elastic.NewBoolQuery().
 		MustNot(elastic.NewTermQuery("status", Processed)).
 		Must(elastic.NewTermQuery("app_key.keyword", handler.appKey))
-		//Must(elastic.NewRangeQuery("receive_time").Gte(startTime).Lt(endTime))
+		//Must(elastic.NewRangeQuery("activate_time").Gte(startTime).Lt(endTime))
 
 	esResponse, _ := handler.esClient.Search().
 		Index(index).
 		Type(handler.appKey).
 		Query(query).
-		Sort("receive_time", true).
+		Sort("activate_time", true).
 		Size(batchSize).
 		Do(context.Background())
 

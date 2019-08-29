@@ -48,11 +48,11 @@ func marshalDevice() (message []byte, err error) {
 	var ptime *timestamp.Timestamp
 	ptime, err = ptypes.TimestampProto(time.Unix(1562238598, 132000000))
 	device := &pb.SdkDeviceReport{
-		OsType:      pb.SdkDeviceReport_ANDROID,
-		Imei:        "1234567890123456",
-		AppKey:      "appkeyA",
-		Channel:     "channelA",
-		ReceiveTime: ptime,
+		OsType:       pb.SdkDeviceReport_ANDROID,
+		Imei:         "1234567890123456",
+		AppKey:       "appkeyA",
+		Channel:      "channelA",
+		ActivateTime: ptime,
 	}
 
 	message, err = proto.Marshal(device)

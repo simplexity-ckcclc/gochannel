@@ -6,13 +6,12 @@ CREATE TABLE `click_info` (
   `device_id` varchar(255) NOT NULL DEFAULT '' COMMENT '设备唯一标识，imei或idfa',
   `os_type` varchar(255) NOT NULL DEFAULT '' COMMENT '系统，ios/android',
   `click_time` bigint(20) NOT NULL COMMENT '点击时间',
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `channel_sig`;
-CREATE TABLE `channel_sig` (
+DROP TABLE IF EXISTS `app_channel`;
+CREATE TABLE `app_channel` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增ID',
   `app_key` varchar(45) NOT NULL DEFAULT '' COMMENT 'App应用标识',
   `channel_id` varchar(45) NOT NULL DEFAULT '' COMMENT '渠道标识',
@@ -34,7 +33,7 @@ CREATE TABLE `sdk_device_report` (
   `language` varchar(45) DEFAULT '' COMMENT '设备语言',
   `os_type` varchar(45) NOT NULL DEFAULT '' COMMENT '操作系统',
   `os_version` varchar(45) DEFAULT '' COMMENT '操作系统版本',
-  `receive_time` varchar(45) NOT NULL DEFAULT '' COMMENT '接收上报时间',
+  `activate_time` varchar(45) NOT NULL DEFAULT '' COMMENT '接收激活时间',
   `source_ip` varchar(45) DEFAULT '' COMMENT '源IP',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
@@ -45,5 +44,17 @@ CREATE TABLE `app_key_process_info` (
   `app_key` varchar(45) NOT NULL DEFAULT '' COMMENT 'App应用标识',
   `process_time` bigint(20) NOT NULL DEFAULT 0 COMMENT '已完成处理的最新时间戳',
   UNIQUE KEY `uniq_app_key` (`app_key`),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `callback_info`;
+CREATE TABLE `callback_info` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `app_key` varchar(45) NOT NULL DEFAULT '' COMMENT 'App应用名称',
+  `channel_id` varchar(55) NOT NULL COMMENT '渠道标识',
+  `device_id` varchar(255) NOT NULL DEFAULT '' COMMENT '设备唯一标识，imei或idfa',
+  `os_type` varchar(255) NOT NULL DEFAULT '' COMMENT '系统，ios/android',
+  `click_time` bigint(20) NOT NULL COMMENT '点击时间',
+  `activate_time` bigint(20) NOT NULL COMMENT '激活时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

@@ -35,3 +35,6 @@ kafka:
       - gochannel
   group-id: gochannel_group
 
+activate:
+  # 7 days in milliseconds
+  valid-period: 604800000

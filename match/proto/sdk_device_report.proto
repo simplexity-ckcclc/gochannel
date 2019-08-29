@@ -9,7 +9,7 @@ package proto;
 message SdkDeviceReport {
     string imei = 1;
     string idfa = 2;
-    google.protobuf.Timestamp receive_time = 3;
+    google.protobuf.Timestamp activate_time = 3;
     string channel = 4;
     string app_key = 5;
 
