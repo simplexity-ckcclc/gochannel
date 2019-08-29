@@ -9,9 +9,6 @@ import (
 )
 
 func main() {
-	//tools.SignAndPrintNonce()
-	//tools.SignAndPrintClickInfo()
-
 	var confPath string
 	flag.StringVar(&confPath, "conf", "", "gochannel config file")
 	flag.Parse()

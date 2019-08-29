@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
@@ -34,8 +35,11 @@ runningLoop:
 			latestProcessTime := latestProcessTime(handler.appKey)
 			if latestProcessTime == 0 {
 				// New appKey, process the last 3 days
-				latestProcessTime = time.Now().Add(-3 * 24 * time.Hour).Unix()
+				latestProcessTime = time.Now().Add(-3*24*time.Hour).UnixNano() / int64(time.Millisecond)
 			}
+
+			devices := handler.getDevices(latestProcessTime, time.Now().UnixNano()/int64(time.Millisecond), 5)
+			fmt.Println(devices)
 
 			//fmt.Println(latestProcessTime)
 			//todo start process
@@ -70,11 +74,11 @@ func updateLatestProcessTime(appKey string, processTime int64) error {
 }
 
 func (handler DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) []Device {
-	index := config.GetString(config.EsClickIndex)
+	index := config.GetString(config.EsDeviceIndex)
 	query := elastic.NewBoolQuery().
 		MustNot(elastic.NewTermQuery("status", Processed)).
-		Must(elastic.NewTermQuery("app_key", handler.appKey)).
-		Must(elastic.NewRangeQuery("receive_time").Gte(startTime).Lt(endTime))
+		Must(elastic.NewTermQuery("app_key.keyword", handler.appKey))
+		//Must(elastic.NewRangeQuery("receive_time").Gte(startTime).Lt(endTime))
 
 	esResponse, _ := handler.esClient.Search().
 		Index(index).

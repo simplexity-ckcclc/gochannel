@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/olivere/elastic.v6"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -34,11 +35,14 @@ func (porter DevicePorter) TransferDevices() {
 		}
 
 		if len(devices) > 0 {
-			porter.putDevicesIntoEs(devices, esDeviceIndex)
+			if err = porter.putDevicesIntoEs(devices, esDeviceIndex); err == nil {
+				if err = porter.deleteDevices(devices); err != nil {
+					common.MatchLogger.Error("Delete device error. ", err)
+				}
+			}
 		}
 
 		time.Sleep(10 * time.Second)
-
 	}
 }
 
@@ -63,7 +67,7 @@ func (porter DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	return devices, err
 }
 
-func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) {
+func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) error {
 	bulkRequest := porter.esClient.Bulk()
 	for _, device := range devices {
 		deviceJson, err := json.Marshal(device)
@@ -86,7 +90,7 @@ func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) {
 		common.MatchLogger.WithFields(logrus.Fields{
 			"devices": devices,
 		}).Error("Bulk put device doc error : ", err)
-		return
+		return err
 	}
 
 	failed := bulkResponse.Failed()
@@ -96,4 +100,22 @@ func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) {
 			"errCause": failedResp.Error,
 		}).Error("Bulk put device doc error : ", err)
 	}
+	return nil
+}
+
+func (porter DevicePorter) deleteDevices(devices []Device) error {
+	var ids []string
+	for _, device := range devices {
+		ids = append(ids, strconv.Itoa(int(device.Id)))
+	}
+
+	s := strings.Join(ids, ",")
+	_, err := porter.db.Exec(`DELETE FROM sdk_device_report WHERE id in (` + s + `)`)
+	return err
+
+	//stmt, _ := porter.db.Prepare("DELETE FROM sdk_device_report WHERE id = ?")
+	//for _, device := range devices {
+	//	stmt.Exec(device.Id)
+	//}
+	//return nil
 }

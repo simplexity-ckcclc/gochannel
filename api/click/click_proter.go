@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/olivere/elastic.v6"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,13 +28,17 @@ func NewClickPorter(database *sql.DB, client *elastic.Client) *ClickPorter {
 func (porter ClickPorter) TransferClicks() {
 	esDeviceIndex := config.GetString(config.EsClickIndex)
 	for {
-		devices, err := porter.getClickInfos(config.GetInt(config.EsClickBatchSize))
+		clicks, err := porter.getClickInfos(config.GetInt(config.EsClickBatchSize))
 		if err != nil {
 			common.ApiLogger.WithFields(logrus.Fields{}).Error("Get click infos from db error : ", err)
 		}
 
-		if len(devices) > 0 {
-			porter.putClickIntoEs(devices, esDeviceIndex)
+		if len(clicks) > 0 {
+			if err = porter.putClickIntoEs(clicks, esDeviceIndex); err == nil {
+				if err = porter.deleteClicks(clicks); err != nil {
+					common.ApiLogger.Error("Delete click infos error. ", err)
+				}
+			}
 		}
 
 		time.Sleep(10 * time.Second)
@@ -61,7 +66,7 @@ func (porter ClickPorter) getClickInfos(limit int) ([]ClickInfo, error) {
 	return clickInfos, err
 }
 
-func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) {
+func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) error {
 	bulkRequest := porter.esClient.Bulk()
 	for _, click := range clickInfos {
 		clickJson, err := json.Marshal(click)
@@ -84,7 +89,7 @@ func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) {
 		common.ApiLogger.WithFields(logrus.Fields{
 			"clickInfos": clickInfos,
 		}).Error("Bulk put click doc error : ", err)
-		return
+		return err
 	}
 
 	failed := bulkResponse.Failed()
@@ -94,4 +99,16 @@ func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) {
 			"errCause": failedResp.Error,
 		}).Error("Bulk put click doc error")
 	}
+	return nil
+}
+
+func (porter ClickPorter) deleteClicks(clicks []ClickInfo) error {
+	var ids []string
+	for _, click := range clicks {
+		ids = append(ids, strconv.Itoa(int(click.Id)))
+	}
+
+	s := strings.Join(ids, ",")
+	_, err := porter.db.Exec(`DELETE FROM click_info WHERE id in (` + s + `)`)
+	return err
 }

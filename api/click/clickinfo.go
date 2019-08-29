@@ -15,7 +15,7 @@ type ClickInfo struct {
 }
 
 func (clickInfo *ClickInfo) InsertDB(db *sql.DB) error {
-	stmt, err := db.Prepare("INSERT INTO click_info (app_key, channel_id, os_type, device_id, click_time) VALUES (?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO click_info (app_key, channel_id, os_type, device_id, click_time) VALUES (?, ?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
 		return err

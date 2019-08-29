@@ -3,10 +3,12 @@ package match
 import (
 	"github.com/bsm/sarama-cluster"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 type SdkMsgReceiver struct {
@@ -74,18 +76,18 @@ func (handler PbSdkMsgHandler) handle(message []byte) {
 		if !validate(device) {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"Device ": device,
-			}).Debug("Invalid sdk message")
+			}).Debug("Invalid sdk message.")
 			return
 		}
 
 		if err := insertIntoDB(device); err != nil {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"Device ": device,
-			}).Error("Insert into DB error", err)
+			}).Error("Insert into DB error.", err)
 		} else {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"Device ": device,
-			}).Debug("Insert into DB")
+			}).Debug("Insert into DB.")
 		}
 	}
 
@@ -96,14 +98,15 @@ func validate(device *pb.SdkDeviceReport) bool {
 }
 
 func insertIntoDB(device *pb.SdkDeviceReport) error {
-	stmt, err := common.DB.Prepare("INSERT INTO sdk_device_report (imei, idfa, app_key, channel_id, resolution, " +
-		"language, os_type, os_version, receive_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-	defer stmt.Close()
+	rtime, err := ptypes.Timestamp(device.ReceiveTime)
 	if err != nil {
-		return err
+		return nil
 	}
 
-	_, err = stmt.Exec(device.Imei, device.Idfa, device.AppKey, device.Channel, device.Resolution,
-		device.Language, device.OsType, device.OsVersion, device.ReceiveTime, device.SourceIp)
+	_, err = common.DB.Exec("INSERT INTO sdk_device_report (imei, idfa, app_key, channel_id, resolution, "+
+		"language, os_type, os_version, receive_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		device.Imei, device.Idfa, device.AppKey, device.Channel, device.Resolution,
+		device.Language, device.OsType.String(), device.OsVersion, rtime.UnixNano()/int64(time.Millisecond),
+		device.SourceIp)
 	return err
 }
