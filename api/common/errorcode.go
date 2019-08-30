@@ -5,36 +5,42 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type E ErrorCode
+
 var (
-	SUCCESS = ErrorCode{
+	Success = ErrorCode{
 		Code:    0,
 		Message: "Success",
 	}
-	INTERNAL_SERVER_ERROR = ErrorCode{
+	InternalServerError = ErrorCode{
 		Code:    10000,
 		Message: "Internal server error",
 	}
-	REQUIRED_PARAMETER_MISSING = ErrorCode{
+	RequiredParameterMissing = ErrorCode{
 		Code:    20000,
 		Message: "Required parameter missing",
 	}
-	CHANNEL_NOT_FOUND = ErrorCode{
+	ChannelNotFound = ErrorCode{
 		Code:    20100,
 		Message: "Channel not found",
 	}
-	DUPLICATE_CHANNEL = ErrorCode{
+	DuplicateChannel = ErrorCode{
 		Code:    20101,
 		Message: "Duplicate channel",
 	}
-	APP_KEY_UNMATCHED = ErrorCode{
+	AppChannelUnmatched = ErrorCode{
 		Code:    20102,
-		Message: "App key unmatched",
+		Message: "App-Channel unmatched",
 	}
-	SIG_INVALID = ErrorCode{
+	ChannelTypeInvalid = ErrorCode{
+		Code:    20103,
+		Message: "Channel type invalid",
+	}
+	SigInvalid = ErrorCode{
 		Code:    20200,
 		Message: "Signature invalid",
 	}
-	DUPLICATE_NONCE = ErrorCode{
+	DuplicateNonce = ErrorCode{
 		Code:    20300,
 		Message: "Duplicate nonce",
 	}

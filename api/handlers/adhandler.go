@@ -16,59 +16,59 @@ import (
 func ClickHandler(c *gin.Context) {
 	var click click.ClickInfo
 	if err := c.ShouldBind(&click); err != nil {
-		api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
+		api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
 		return
 	}
 
-	appkeySig, found := appchannel.SearchAppChannel(click.ChannelId)
+	appChannel, found := appchannel.SearchAppChannel(click.ChannelId)
 	if !found {
-		api.ResponseJSON(c, http.StatusOK, api.CHANNEL_NOT_FOUND)
+		api.ResponseJSON(c, http.StatusOK, api.ChannelNotFound)
 		return
 	}
 
-	if appkeySig.AppKey != click.AppKey {
-		api.ResponseJSON(c, http.StatusOK, api.APP_KEY_UNMATCHED)
+	if appChannel.AppKey != click.AppKey {
+		api.ResponseJSON(c, http.StatusOK, api.AppChannelUnmatched)
 		return
 	}
 
 	//verify app key sig
 	sig := c.Query("sig")
 	if sig == "" {
-		api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
+		api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
 		return
 	}
 	sourceURL := buildSourceURL(click)
-	valid, err := api.VerifyBase64WithRSAPubKey(sourceURL, appkeySig.PublicKey, sig)
+	valid, err := api.VerifyBase64WithRSAPubKey(sourceURL, appChannel.PublicKey, sig)
 	if err != nil {
 		common.ApiLogger.WithFields(logrus.Fields{
-			"pubKey": appkeySig.PublicKey,
+			"pubKey": appChannel.PublicKey,
 		}).Error("Verify click signature - VerifyBase64WithRSAPubKey error : ", err)
-		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
+		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	} else if !valid {
 		common.ApiLogger.WithFields(logrus.Fields{
 			"clickInfo": click,
-			"pubKey":    appkeySig.PublicKey,
+			"pubKey":    appChannel.PublicKey,
 			"sig":       sig,
 		}).Info("Invalid signature")
-		api.ResponseJSON(c, http.StatusOK, api.SIG_INVALID)
+		api.ResponseJSON(c, http.StatusOK, api.SigInvalid)
 		return
 	}
 
 	if err := click.InsertDB(common.DB); err != nil {
 		common.ApiLogger.WithFields(logrus.Fields{
 			"clickInfo": click,
-			"pubKey":    appkeySig.PublicKey,
+			"pubKey":    appChannel.PublicKey,
 			"sig":       sig,
 		}).Error("Insert DB error : ", err)
-		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
+		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	}
 
 	common.ApiLogger.WithFields(logrus.Fields{
 		"clickInfo": click,
 	}).Info("Insert click info")
-	api.ResponseJSON(c, http.StatusOK, api.SUCCESS)
+	api.ResponseJSON(c, http.StatusOK, api.Success)
 }
 
 func buildSourceURL(click click.ClickInfo) string {

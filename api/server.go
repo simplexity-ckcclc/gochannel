@@ -23,7 +23,7 @@ var (
 
 func Serve() {
 
-	if err := appchannel.LoadChannelSigs(common.DB); err != nil {
+	if err := appchannel.LoadAppChannels(common.DB); err != nil {
 		panic(err)
 	}
 
@@ -66,13 +66,13 @@ func authRequired() gin.HandlerFunc {
 		nonce := c.Query("nonce")
 		sig := c.Query("sig")
 		if nonce == "" || sig == "" {
-			api.ResponseJSON(c, http.StatusBadRequest, api.REQUIRED_PARAMETER_MISSING)
+			api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
 			c.Abort()
 			return
 		}
 
 		if valid := validateNonce(nonce); !valid {
-			api.ResponseJSON(c, http.StatusOK, api.DUPLICATE_NONCE)
+			api.ResponseJSON(c, http.StatusOK, api.DuplicateNonce)
 			c.Abort()
 			return
 		}
@@ -83,11 +83,11 @@ func authRequired() gin.HandlerFunc {
 			common.ApiLogger.WithFields(logrus.Fields{
 				"pubKey": pubKey,
 			}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
-			api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.INTERNAL_SERVER_ERROR, err.Error())
+			api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 			c.Abort()
 			return
 		} else if !valid {
-			api.ResponseJSON(c, http.StatusOK, api.SIG_INVALID)
+			api.ResponseJSON(c, http.StatusOK, api.SigInvalid)
 			c.Abort()
 			return
 		}

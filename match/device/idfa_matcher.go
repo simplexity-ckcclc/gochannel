@@ -10,6 +10,12 @@ type IdfaMatcher struct {
 	esClient *elastic.Client
 }
 
+func NewIdfaMatcher(client *elastic.Client) Matcher {
+	return IdfaMatcher{
+		esClient: client,
+	}
+}
+
 func (matcher IdfaMatcher) match(device Device) (matched bool, matchedDevice *MatchedDevice, err error) {
 	index := config.GetString(config.EsClickIndex)
 	query := elastic.NewBoolQuery().

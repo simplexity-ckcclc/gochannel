@@ -47,30 +47,34 @@ func (handler DeviceHandler) Stop() {
 }
 
 func (handler DeviceHandler) startNewAppHandler() {
-	appKeys, err := handler.scanAppKeys()
+	appChannels, err := handler.scanAppChannels()
 	if err != nil {
 		common.MatchLogger.Error("Select app_key from table app_channel error")
+		return
 	}
 
-	for _, appKey := range appKeys {
-		if _, ok := handler.appHandlers[appKey]; !ok {
+	for _, appChannel := range appChannels {
+		if _, ok := handler.appHandlers[appChannel.AppKey]; !ok {
 			// New appKey, start new DeviceAppHandler
 			var matchers []Matcher
-			// todo add matchers
+			matcherFunc := matcherMappings[appChannel.ChannelType]
+			matcher := matcherFunc(handler.esClient)
+			matchers = append(matchers, matcher)
+
 			appHandler := DeviceAppHandler{
-				appKey:   appKey,
+				appKey:   appChannel.AppKey,
 				esClient: handler.esClient,
 				stopChan: make(chan bool, 1),
 				matchers: matchers,
 			}
-			handler.appHandlers[appKey] = appHandler
+			handler.appHandlers[appChannel.AppKey] = appHandler
 			go appHandler.start()
 		}
 	}
 
 	// Deprecate appKey
 	for appKey := range handler.appHandlers {
-		if !contains(appKeys, appKey) {
+		if !contains(appChannels, appKey) {
 			appHandler := handler.appHandlers[appKey]
 			appHandler.stop()
 			delete(handler.appHandlers, appKey)
@@ -87,21 +91,28 @@ func contains(a []string, x string) bool {
 	return false
 }
 
-func (handler DeviceHandler) scanAppKeys() ([]string, error) {
-	rows, err := handler.db.Query(`SELECT DISTINCT app_key FROM app_channel`)
+func (handler DeviceHandler) scanAppChannels() ([]common.AppChannel, error) {
+	rows, err := handler.db.Query(`SELECT app_key, channel_id, channel_type FROM app_channel`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var appKeys []string
-	var appKey string
+	var appChannels []common.AppChannel
+	var appChannel common.AppChannel
+	var appKey, channelId, channelType string
 	for rows.Next() {
-		if err = rows.Scan(&appKey); err != nil {
+		if err = rows.Scan(&appKey, &channelId, &channelType); err != nil {
 			return nil, err
 		}
-		appKeys = append(appKeys, appKey)
+
+		appChannel = common.AppChannel{
+			AppKey:      appKey,
+			ChannelId:   channelId,
+			ChannelType: common.ParseChannelType(channelType),
+		}
+		appChannels = append(appChannels, appChannel)
 	}
 	err = rows.Err()
-	return appKeys, err
+	return appChannels, err
 }

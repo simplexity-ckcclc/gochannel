@@ -7,21 +7,14 @@ import (
 	"sync"
 )
 
-type appChannel struct {
-	AppKey     string
-	ChannelId  string
-	PublicKey  string
-	PrivateKey string
-}
-
 var appChannelHolder = struct {
 	sync.RWMutex
-	channels map[string]*appChannel
-}{channels: make(map[string]*appChannel)}
+	channels map[string]*common.AppChannel
+}{channels: make(map[string]*common.AppChannel)}
 
-func LoadChannelSigs(db *sql.DB) error {
-	var appkey, channelId, pubKey, priKey string
-	rows, err := db.Query("select app_key, channel_id, public_key, private_key from app_channel;")
+func LoadAppChannels(db *sql.DB) error {
+	var ac *common.AppChannel
+	rows, err := db.Query("select app_key, channel_id, channel_type, public_key, private_key from app_channel;")
 	defer rows.Close()
 	if err != nil {
 		common.ApiLogger.Error("Load channel signature error : ", err)
@@ -31,25 +24,19 @@ func LoadChannelSigs(db *sql.DB) error {
 	appChannelHolder.Lock()
 	defer appChannelHolder.Unlock()
 	for rows.Next() {
-		err = rows.Scan(&appkey, &channelId, &pubKey, &priKey)
+		err = rows.Scan(&ac.AppKey, &ac.ChannelId, &ac.ChannelType, &ac.PublicKey, &ac.PrivateKey)
 		if err != nil {
 			common.ApiLogger.Error("Load channel signature error : ", err)
 			return err
 		}
-		sig := &appChannel{
-			AppKey:     appkey,
-			ChannelId:  channelId,
-			PublicKey:  pubKey,
-			PrivateKey: priKey,
-		}
-		appChannelHolder.channels[channelId] = sig
+		appChannelHolder.channels[ac.ChannelId] = ac
 	}
 
 	err = rows.Err()
 	return err
 }
 
-func SearchAppChannel(channelId string) (*appChannel, bool) {
+func SearchAppChannel(channelId string) (*common.AppChannel, bool) {
 	appChannelHolder.RLock()
 	defer appChannelHolder.RUnlock()
 	channelSig, ok := appChannelHolder.channels[channelId]
@@ -73,30 +60,31 @@ func EvictAppChannel(db *sql.DB, channelId string) error {
 	return nil
 }
 
-func RegisterChannelSig(db *sql.DB, appkey string, channelId string) (*appChannel, error) {
+func RegisterAppChannel(db *sql.DB, appkey string, channelId string, channelType common.ChannelType) (*common.AppChannel, error) {
 	pubKey, priKey, err := api.GenerateRSAKeyPair()
 	if err != nil {
 		return nil, err
 	}
 
-	stmt, err := db.Prepare("INSERT INTO app_channel (app_key, channel_id, public_key, private_key) VALUES (?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO app_channel (app_key, channel_id, channel_type, public_key, private_key) VALUES (?, ?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = stmt.Exec(appkey, channelId, pubKey, priKey); err != nil {
+	if _, err = stmt.Exec(appkey, channelId, channelType, pubKey, priKey); err != nil {
 		return nil, err
 	}
 
-	sig := &appChannel{
-		AppKey:     appkey,
-		ChannelId:  channelId,
-		PublicKey:  pubKey,
-		PrivateKey: priKey,
+	ac := &common.AppChannel{
+		AppKey:      appkey,
+		ChannelId:   channelId,
+		ChannelType: channelType,
+		PublicKey:   pubKey,
+		PrivateKey:  priKey,
 	}
 	appChannelHolder.Lock()
 	defer appChannelHolder.Unlock()
-	appChannelHolder.channels[channelId] = sig
-	return sig, nil
+	appChannelHolder.channels[channelId] = ac
+	return ac, nil
 }

@@ -7,7 +7,7 @@ CREATE TABLE `click_info` (
   `os_type` varchar(255) NOT NULL DEFAULT '' COMMENT '系统，ios/android',
   `click_time` bigint(20) NOT NULL COMMENT '点击时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DROP TABLE IF EXISTS `app_channel`;
@@ -15,11 +15,12 @@ CREATE TABLE `app_channel` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增ID',
   `app_key` varchar(45) NOT NULL DEFAULT '' COMMENT 'App应用标识',
   `channel_id` varchar(45) NOT NULL DEFAULT '' COMMENT '渠道标识',
+  `channel_type` varchar(45) NOT NULL DEFAULT '' COMMENT '渠道类型，例如ios,android,gdt, etc.',
   `public_key` varchar(1024) NOT NULL DEFAULT '' COMMENT '公钥',
   `private_key` varchar(1024) NOT NULL DEFAULT '' COMMENT '私钥',
   UNIQUE KEY `uniq_app_key_&_channel_id` (`app_key`, `channel_id`),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DROP TABLE IF EXISTS `sdk_device_report`;
@@ -36,7 +37,7 @@ CREATE TABLE `sdk_device_report` (
   `activate_time` varchar(45) NOT NULL DEFAULT '' COMMENT '接收激活时间',
   `source_ip` varchar(45) DEFAULT '' COMMENT '源IP',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `app_process_info`;
 CREATE TABLE `app_process_info` (
@@ -57,4 +58,4 @@ CREATE TABLE `callback_info` (
   `click_time` bigint(20) NOT NULL COMMENT '点击时间',
   `activate_time` bigint(20) NOT NULL COMMENT '激活时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
