@@ -33,6 +33,7 @@ const (
 	KafkaGroupId         = "kafka.group-id"
 
 	ActivateValidPeriod = "activate.valid-period"
+	ProcessPeriod       = "process.period"
 )
 
 // LoadConf load config from file and read in environment variables that match

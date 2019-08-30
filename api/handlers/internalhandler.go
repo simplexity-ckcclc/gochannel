@@ -25,9 +25,9 @@ func EvictChannelHandler(c *gin.Context) {
 
 // The request responds to a url matching:  /internal/channel/:channel/register?nonce=xx&sig=
 func RegisterChannelHandler(c *gin.Context) {
-	appkey := c.Query("appKey")
 	channelId := c.Param("channel")
-	channelType := c.Param("channelType")
+	appkey := c.Query("appKey")
+	channelType := c.Query("channelType")
 	if len(appkey) == 0 || len(channelId) == 0 {
 		api.ResponseJSON(c, http.StatusOK, api.RequiredParameterMissing)
 		return

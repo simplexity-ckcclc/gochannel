@@ -8,7 +8,6 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type SdkMsgReceiver struct {
@@ -106,7 +105,7 @@ func insertIntoDB(device *pb.SdkDeviceReport) error {
 	_, err = common.DB.Exec("INSERT INTO sdk_device_report (imei, idfa, app_key, channel_id, resolution, "+
 		"language, os_type, os_version, activate_time, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		device.Imei, device.Idfa, device.AppKey, device.Channel, device.Resolution,
-		device.Language, device.OsType.String(), device.OsVersion, rtime.UnixNano()/int64(time.Millisecond),
+		device.Language, device.OsType.String(), device.OsVersion, common.TimeToMillis(rtime),
 		device.SourceIp)
 	return err
 }

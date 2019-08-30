@@ -8,21 +8,30 @@ const (
 )
 
 type Device struct {
-	Id           int64  `json:"id"`
-	Imei         string `json:"imei"`
-	Idfa         string `json:"idfa"`
-	ActivateTime int64  `json:"activate_time"`
-	Channel      string `json:"channel"`
-	AppKey       string `json:"app_key"`
-	OsType       OsType `json:"os_type"`
-	OsVersion    string `json:"os_version"`
-	Language     string `json:"language"`
-	Resolution   string `json:"resolution"`
-	SourceIp     string `json:"source_ip"`
+	Id           int64      `json:"id,omitempty"`
+	Imei         string     `json:"imei,omitempty"`
+	Idfa         string     `json:"idfa,omitempty"`
+	ActivateTime int64      `json:"activate_time,omitempty"`
+	Channel      string     `json:"channel,omitempty"`
+	AppKey       string     `json:"app_key,omitempty"`
+	OsType       OsType     `json:"os_type,omitempty"`
+	OsVersion    string     `json:"os_version,omitempty"`
+	Language     string     `json:"language,omitempty"`
+	Resolution   string     `json:"resolution,omitempty"`
+	SourceIp     string     `json:"source_ip,omitempty"`
+	MatchInfo    *MatchInfo `json:"-"`
 }
 
-type MatchedDevice struct {
-	*Device
-	MatchedChannel string
-	ClickTime      int64
+type MatchInfo struct {
+	IsMatched bool
+	Channel   string
+	ClickTime int64
+}
+
+func (device Device) ResetMatchInfo() {
+	device.MatchInfo = &MatchInfo{
+		IsMatched: false,
+		ClickTime: 0,
+		Channel:   "",
+	}
 }

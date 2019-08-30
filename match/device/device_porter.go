@@ -25,7 +25,7 @@ func NewDevicePorter(database *sql.DB, client *elastic.Client) *DevicePorter {
 	}
 }
 
-func (porter DevicePorter) TransferDevices() {
+func (porter *DevicePorter) TransferDevices() {
 	esDeviceIndex := config.GetString(config.EsDeviceIndex)
 	for {
 		devices, err := porter.getSdkDevices(config.GetInt(config.EsDeviceBatchSize))
@@ -46,7 +46,7 @@ func (porter DevicePorter) TransferDevices() {
 	}
 }
 
-func (porter DevicePorter) getSdkDevices(limit int) ([]Device, error) {
+func (porter *DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	rows, err := porter.db.Query(`SELECT id, idfa, imei, app_key, os_type, os_version, source_ip, 
         language, resolution, activate_time FROM sdk_device_report limit` + strconv.Itoa(limit))
 	if err != nil {
@@ -67,7 +67,7 @@ func (porter DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	return devices, err
 }
 
-func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) error {
+func (porter *DevicePorter) putDevicesIntoEs(devices []Device, index string) error {
 	bulkRequest := porter.esClient.Bulk()
 	for _, device := range devices {
 		deviceJson, err := json.Marshal(device)
@@ -103,7 +103,7 @@ func (porter DevicePorter) putDevicesIntoEs(devices []Device, index string) erro
 	return nil
 }
 
-func (porter DevicePorter) deleteDevices(devices []Device) error {
+func (porter *DevicePorter) deleteDevices(devices []Device) error {
 	var ids []string
 	for _, device := range devices {
 		ids = append(ids, strconv.Itoa(int(device.Id)))

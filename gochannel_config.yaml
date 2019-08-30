@@ -1,5 +1,5 @@
 database:
-  dsn: ckcclc:141421@tcp(localhost:3306)/gochannel
+  dsn: ckcclc:141421@tcp(localhost:3306)/gochannel?multiStatements=true
   max-open-conns: 5
   max-idle-conns: 2
 
@@ -38,3 +38,7 @@ kafka:
 activate:
   # 7 days in milliseconds
   valid-period: 604800000
+
+process:
+  # 30 sec in milliseconds
+  period: 30000

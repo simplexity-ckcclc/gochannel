@@ -20,10 +20,12 @@ type DeviceAppHandler struct {
 	appKey   string
 	esClient *elastic.Client
 	stopChan chan bool
-	matchers []Matcher
+	// channelType(ios, android, gdt, etc.) - matcher
+	matchers   map[common.ChannelType]*Matcher
+	callbacker *Callbacker
 }
 
-func (handler DeviceAppHandler) start() {
+func (handler *DeviceAppHandler) start() {
 runningLoop:
 	for {
 		select {
@@ -33,27 +35,70 @@ runningLoop:
 			}).Info("Device App Handler stop")
 			break runningLoop
 		default:
-			latestProcessTime := latestProcessTime(handler.appKey)
+			latestProcessTime := getLatestProcessTime(handler.appKey)
 			if latestProcessTime == 0 {
 				// New appKey, process the last 3 days
-				latestProcessTime = time.Now().Add(-3*24*time.Hour).UnixNano() / int64(time.Millisecond)
+				latestProcessTime = common.TimeToMillis(time.Now().Add(-3 * 24 * time.Hour))
 			}
+			processEndTime := latestProcessTime + config.GetInt64(config.ProcessPeriod)
 
-			devices := handler.getDevices(latestProcessTime, time.Now().UnixNano()/int64(time.Millisecond), 5)
-			fmt.Println(devices)
+			var matchedDevices []*Device
+			devices := handler.getDevices(latestProcessTime, processEndTime, 5)
+			if len(devices) > 0 {
+				for _, device := range devices {
+					device.ResetMatchInfo()
+					for _, matcher := range handler.matchers {
+						if err := (*matcher).Match(device); err != nil {
+							common.MatchLogger.WithFields(logrus.Fields{
+								"device": device,
+							}).Error("match device error.", err)
+						}
+					}
 
-			//fmt.Println(latestProcessTime)
-			//todo start process
+					if device.MatchInfo.IsMatched {
+						matchedDevices = append(matchedDevices, device)
+					}
+				}
+
+				fmt.Println(matchedDevices)
+				if len(matchedDevices) > 0 {
+					if err := handler.callbacker.preHandle(matchedDevices); err != nil {
+						common.MatchLogger.Error("PreHandle matched devices error.", err)
+					}
+				}
+
+				if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
+					common.MatchLogger.WithFields(logrus.Fields{
+						"appKey":      handler.appKey,
+						"processTime": processEndTime,
+					}).Error("Update process time error.", err)
+				}
+			} else {
+				common.MatchLogger.WithFields(logrus.Fields{
+					"startTime": latestProcessTime,
+					"endTime":   processEndTime,
+					"appKey":    handler.appKey,
+				}).Info("No sdk device activation.")
+
+				//if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
+				//	common.MatchLogger.WithFields(logrus.Fields{
+				//		"appKey": handler.appKey,
+				//		"processTime": processEndTime,
+				//	}).Error("Update process time error.", err)
+				//}
+				time.Sleep(30 * time.Second)
+			}
 		}
 	}
 }
 
-func (handler DeviceAppHandler) stop() {
+func (handler *DeviceAppHandler) stop() {
 	handler.stopChan <- true
 }
 
-func latestProcessTime(appKey string) (processTime int64) {
-	if err := common.DB.QueryRow("SELECT process_time FROM app_process_info WHERE app_key = ?", appKey).Scan(&processTime); err != nil && err != sql.ErrNoRows {
+func getLatestProcessTime(appKey string) (processTime int64) {
+	if err := common.DB.QueryRow("SELECT process_time FROM app_process_info WHERE app_key = ?", appKey).
+		Scan(&processTime); err != nil && err != sql.ErrNoRows {
 		common.MatchLogger.WithFields(logrus.Fields{
 			"appKey": appKey,
 		}).Error("Get app_key last process time error")
@@ -61,36 +106,36 @@ func latestProcessTime(appKey string) (processTime int64) {
 	return
 }
 
-func updateLatestProcessTime(appKey string, processTime int64) error {
-	stmt, err := common.DB.Prepare("INSERT INTO app_process_info (app_key, process_time) VALUES (?, ?) ON DUPLICATE KEY UPDATE process_time = ?")
-	defer stmt.Close()
-	if err != nil {
-		return err
-	}
-
-	if _, err = stmt.Exec(appKey, processTime, processTime); err != nil {
-		return err
-	}
-	return nil
+func updateLatestProcessTime(appKey string, processTime int64) (err error) {
+	_, err = common.DB.Exec("INSERT INTO app_process_info (app_key, process_time) VALUES (?, ?) ON DUPLICATE KEY UPDATE process_time = ?",
+		appKey, processTime, processTime)
+	return
 }
 
-func (handler DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) []Device {
+func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) (devices []*Device) {
 	index := config.GetString(config.EsDeviceIndex)
 	query := elastic.NewBoolQuery().
 		MustNot(elastic.NewTermQuery("status", Processed)).
-		Must(elastic.NewTermQuery("app_key.keyword", handler.appKey))
-		//Must(elastic.NewRangeQuery("activate_time").Gte(startTime).Lt(endTime))
+		Must(elastic.NewTermQuery("app_key.keyword", handler.appKey)).
+		Must(elastic.NewRangeQuery("activate_time").Gte(startTime).Lt(endTime))
 
-	esResponse, _ := handler.esClient.Search().
+	esResponse, err := handler.esClient.Search().
 		Index(index).
 		Type(handler.appKey).
 		Query(query).
 		Sort("activate_time", true).
 		Size(batchSize).
 		Do(context.Background())
+	if err != nil {
+		common.MatchLogger.Error("Search es device error.", err)
+		return
+	}
 
-	var devices []Device
-	var device Device
+	if esResponse.Hits.TotalHits <= 0 {
+		return
+	}
+
+	var device *Device
 	for _, value := range esResponse.Hits.Hits {
 		if err := json.Unmarshal(*value.Source, &device); err != nil {
 			common.MatchLogger.WithFields(logrus.Fields{

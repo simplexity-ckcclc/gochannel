@@ -18,8 +18,8 @@ func Serve() {
 	go devicePorter.TransferDevices()
 
 	// bulk get devices from es and then run match process
-	deviceHandler := device.NewDeviceHandler(common.DB, common.EsClient)
-	go deviceHandler.Start()
+	processor := device.NewDeviceProcessor(common.DB, common.EsClient)
+	go processor.Start()
 
 	common.MatchLogger.Info("Match server started")
 }

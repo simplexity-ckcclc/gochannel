@@ -5,14 +5,14 @@ import (
 	"gopkg.in/olivere/elastic.v6"
 )
 
-type newMatcherFunc func(*elastic.Client) Matcher
+type instantiateMatcherFunc func(*elastic.Client) Matcher
 
-var matcherMappings map[common.ChannelType]newMatcherFunc
+var matcherMappings = make(map[common.ChannelType]instantiateMatcherFunc)
 
 func init() {
 	matcherMappings[common.IOSChannelType] = NewIdfaMatcher
 }
 
 type Matcher interface {
-	match(device Device) (bool, *MatchedDevice, error)
+	Match(device *Device) error
 }
