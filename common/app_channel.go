@@ -32,5 +32,5 @@ type AppChannel struct {
 	ChannelType ChannelType `json:"channel_type"`
 	PublicKey   string      `json:"pub_key"`
 	PrivateKey  string      `json:"pri_key"`
-	CallbackUrl string      `json:"-"`
+	CallbackUrl string      `json:"callback_url"`
 }
