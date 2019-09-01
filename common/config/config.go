@@ -52,7 +52,7 @@ func LoadConf(confPath string) error {
 		}
 	} else {
 		viper.AddConfigPath("$HOME/go")
-		viper.AddConfigPath(".")
+		viper.AddConfigPath("./configs")
 		viper.SetConfigName("gochannel_config")
 
 		// If a config file is found, read it in.

@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
+	pb "github.com/simplexity-ckcclc/gochannel/protos"
 	"time"
 )
 

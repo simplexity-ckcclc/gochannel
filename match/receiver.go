@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
-	pb "github.com/simplexity-ckcclc/gochannel/match/proto"
+	pb "github.com/simplexity-ckcclc/gochannel/protos"
 	"github.com/sirupsen/logrus"
 )
 
