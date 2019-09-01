@@ -18,6 +18,7 @@ CREATE TABLE `app_channel` (
   `channel_type` varchar(45) NOT NULL DEFAULT '' COMMENT '渠道类型，例如ios,android,gdt, etc.',
   `public_key` varchar(1024) NOT NULL DEFAULT '' COMMENT '公钥',
   `private_key` varchar(1024) NOT NULL DEFAULT '' COMMENT '私钥',
+  `callback_url` varchar(1024) NOT NULL DEFAULT '' COMMENT '回调接口',
   UNIQUE KEY `uniq_app_key_&_channel_id` (`app_key`, `channel_id`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

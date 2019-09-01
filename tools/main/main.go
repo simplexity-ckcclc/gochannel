@@ -1,9 +1,9 @@
 package main
 
-import "github.com/simplexity-ckcclc/gochannel/tools/kafka"
+import "github.com/simplexity-ckcclc/gochannel/tools"
 
 func main() {
 	//tools.SignAndPrintNonce()
-	//tools.SignAndPrintClickInfo()
-	kafka.ProduceDeviceProto()
+	tools.SignAndPrintClickInfo()
+	//kafka.ProduceDeviceProto()
 }

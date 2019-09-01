@@ -12,6 +12,7 @@ type DeviceProcessor struct {
 	db          *sql.DB
 	esClient    *elastic.Client
 	appHandlers map[string]*DeviceAppHandler
+	callbacker  *Callbacker
 	stopChan    chan bool
 }
 
@@ -21,12 +22,13 @@ func NewDeviceProcessor(database *sql.DB, client *elastic.Client) *DeviceProcess
 		esClient:    client,
 		appHandlers: make(map[string]*DeviceAppHandler),
 		stopChan:    make(chan bool, 1),
+		callbacker:  NewCallbacker(database),
 	}
 }
 
 func (processor *DeviceProcessor) Start() {
 	processor.startNewAppHandler()
-	ticker := time.NewTicker(time.Second * 3)
+	ticker := time.NewTicker(time.Minute * 1)
 runningLoop:
 	for {
 		select {
@@ -35,7 +37,7 @@ runningLoop:
 			break runningLoop
 		case <-ticker.C:
 			processor.startNewAppHandler()
-			ticker = time.NewTicker(time.Second * 3)
+			ticker = time.NewTicker(time.Minute * 1)
 		}
 	}
 }
@@ -45,6 +47,7 @@ func (processor *DeviceProcessor) Stop() {
 	for _, appHandler := range processor.appHandlers {
 		appHandler.stop()
 	}
+	processor.callbacker.stop()
 }
 
 func (processor *DeviceProcessor) startNewAppHandler() {
@@ -58,13 +61,11 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 		if _, ok := processor.appHandlers[appChannel.AppKey]; !ok {
 			// New appKey, start new DeviceAppHandler
 			handler := &DeviceAppHandler{
-				appKey:   appChannel.AppKey,
-				esClient: processor.esClient,
-				stopChan: make(chan bool, 1),
-				matchers: make(map[common.ChannelType]*Matcher),
-				callbacker: &Callbacker{
-					db: processor.db,
-				},
+				appKey:     appChannel.AppKey,
+				esClient:   processor.esClient,
+				stopChan:   make(chan bool, 1),
+				matchers:   make(map[common.ChannelType]*Matcher),
+				callbacker: processor.callbacker,
 			}
 			processor.appHandlers[appChannel.AppKey] = handler
 			go handler.start()

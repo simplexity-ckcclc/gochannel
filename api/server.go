@@ -55,8 +55,8 @@ func router() *gin.Engine {
 	internalGroup := router.Group("/internal")
 	internalGroup.Use(authRequired())
 	{
-		internalGroup.POST("/channel/:channel/evict", handlers.EvictChannelHandler)
-		internalGroup.POST("/channel/:channel/register", handlers.RegisterChannelHandler)
+		internalGroup.POST("/channel/evict", handlers.EvictChannelHandler)
+		internalGroup.POST("/channel/register", handlers.RegisterChannelHandler)
 	}
 	return router
 }
@@ -66,7 +66,7 @@ func authRequired() gin.HandlerFunc {
 		nonce := c.Query("nonce")
 		sig := c.Query("sig")
 		if nonce == "" || sig == "" {
-			api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
+			api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterError)
 			c.Abort()
 			return
 		}

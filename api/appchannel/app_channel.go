@@ -38,62 +38,63 @@ func LoadAppChannels(db *sql.DB) error {
 			PublicKey:   pubKey,
 			PrivateKey:  priKey,
 		}
-		appChannelHolder.channels[ac.ChannelId] = ac
+		appChannelHolder.channels[appKeyChannel(ac.AppKey, ac.ChannelId)] = ac
 	}
 
 	err = rows.Err()
 	return err
 }
 
-func SearchAppChannel(channelId string) (*common.AppChannel, bool) {
+func SearchAppChannel(appKey string, channel string) (*common.AppChannel, bool) {
 	appChannelHolder.RLock()
 	defer appChannelHolder.RUnlock()
-	channelSig, ok := appChannelHolder.channels[channelId]
+	channelSig, ok := appChannelHolder.channels[appKeyChannel(appKey, channel)]
 	return channelSig, ok
 }
 
-func EvictAppChannel(db *sql.DB, channelId string) error {
+func EvictAppChannel(db *sql.DB, appKey string, channel string) error {
 	appChannelHolder.Lock()
 	defer appChannelHolder.Unlock()
-	delete(appChannelHolder.channels, channelId)
+	delete(appChannelHolder.channels, appKeyChannel(appKey, channel))
 
-	stmt, err := db.Prepare("DELETE FROM app_channel WHERE channel_id=?")
+	stmt, err := db.Prepare("DELETE FROM app_channel WHERE app_key = ? and channel_id = ?")
 	defer stmt.Close()
 	if err != nil {
 		return err
 	}
 
-	if _, err = stmt.Exec(channelId); err != nil {
+	if _, err = stmt.Exec(appKey, channel); err != nil {
 		return err
 	}
 	return nil
 }
 
-func RegisterAppChannel(db *sql.DB, appkey string, channelId string, channelType common.ChannelType) (*common.AppChannel, error) {
+func RegisterAppChannel(db *sql.DB, ac *common.AppChannel) error {
 	pubKey, priKey, err := api.GenerateRSAKeyPair()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	stmt, err := db.Prepare("INSERT INTO app_channel (app_key, channel_id, channel_type, public_key, private_key) VALUES (?, ?, ?, ?, ?)")
+	ac.PublicKey = pubKey
+	ac.PrivateKey = priKey
+
+	stmt, err := db.Prepare("INSERT INTO app_channel (app_key, channel_id, channel_type, public_key, private_key, callback_url) " +
+		"VALUES (?, ?, ?, ?, ?, ?)")
 	defer stmt.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if _, err = stmt.Exec(appkey, channelId, channelType, pubKey, priKey); err != nil {
-		return nil, err
+	if _, err = stmt.Exec(ac.AppKey, ac.ChannelId, ac.ChannelType.String(), pubKey, priKey, ac.CallbackUrl); err != nil {
+		return err
 	}
 
-	ac := &common.AppChannel{
-		AppKey:      appkey,
-		ChannelId:   channelId,
-		ChannelType: channelType,
-		PublicKey:   pubKey,
-		PrivateKey:  priKey,
-	}
 	appChannelHolder.Lock()
 	defer appChannelHolder.Unlock()
-	appChannelHolder.channels[channelId] = ac
-	return ac, nil
+	appChannelHolder.channels[appKeyChannel(ac.AppKey, ac.ChannelId)] = ac
+	return nil
+}
+
+func appKeyChannel(appKey string, channel string) string {
+	return appKey + "-" + channel
 }

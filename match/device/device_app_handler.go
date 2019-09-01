@@ -38,7 +38,7 @@ runningLoop:
 			latestProcessTime := getLatestProcessTime(handler.appKey)
 			if latestProcessTime == 0 {
 				// New appKey, process the last 3 days
-				latestProcessTime = common.TimeToMillis(time.Now().Add(-3 * 24 * time.Hour))
+				latestProcessTime = common.TimeToMillis(time.Now().AddDate(0, 0, -3))
 			}
 			processEndTime := latestProcessTime + config.GetInt64(config.ProcessPeriod)
 
@@ -80,12 +80,12 @@ runningLoop:
 					"appKey":    handler.appKey,
 				}).Info("No sdk device activation.")
 
-				//if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
-				//	common.MatchLogger.WithFields(logrus.Fields{
-				//		"appKey": handler.appKey,
-				//		"processTime": processEndTime,
-				//	}).Error("Update process time error.", err)
-				//}
+				if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
+					common.MatchLogger.WithFields(logrus.Fields{
+						"appKey":      handler.appKey,
+						"processTime": processEndTime,
+					}).Error("Update process time error.", err)
+				}
 				time.Sleep(30 * time.Second)
 			}
 		}

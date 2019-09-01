@@ -7,12 +7,14 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 )
 
 // The request responds to a url matching:  /internal/channel/:channel/evict?nonce=xx&sig=
 func EvictChannelHandler(c *gin.Context) {
-	channelId := c.Param("channel")
-	if err := appchannel.EvictAppChannel(common.DB, channelId); err != nil {
+	appKey := c.Query("appKey")
+	channelId := c.Query("channel")
+	if err := appchannel.EvictAppChannel(common.DB, appKey, channelId); err != nil {
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	}
@@ -25,34 +27,38 @@ func EvictChannelHandler(c *gin.Context) {
 
 // The request responds to a url matching:  /internal/channel/:channel/register?nonce=xx&sig=
 func RegisterChannelHandler(c *gin.Context) {
-	channelId := c.Param("channel")
-	appkey := c.Query("appKey")
-	channelType := c.Query("channelType")
-	if len(appkey) == 0 || len(channelId) == 0 {
-		api.ResponseJSON(c, http.StatusOK, api.RequiredParameterMissing)
+	var ac common.AppChannel
+	if err := c.BindJSON(&ac); err != nil {
+		api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterError)
 		return
 	}
 
-	if _, found := appchannel.SearchAppChannel(channelId); found {
+	if len(ac.AppKey) == 0 || len(ac.ChannelId) == 0 {
+		api.ResponseJSON(c, http.StatusOK, api.RequiredParameterError)
+		return
+	}
+
+	if _, found := appchannel.SearchAppChannel(ac.AppKey, ac.ChannelId); found {
 		api.ResponseJSON(c, http.StatusOK, api.DuplicateChannel)
 		return
 	}
 
 	var ct common.ChannelType
-	if ct = common.ParseChannelType(channelType); ct == common.UnknownChannelType {
+	if ct = common.ParseChannelType(strings.ToLower(ac.ChannelType.String())); ct == common.UnknownChannelType {
 		api.ResponseJSON(c, http.StatusOK, api.ChannelTypeInvalid)
 		return
+	} else {
+		ac.ChannelType = ct
 	}
 
-	sig, err := appchannel.RegisterAppChannel(common.DB, appkey, channelId, ct)
-	if err != nil {
+	if err := appchannel.RegisterAppChannel(common.DB, &ac); err != nil {
 		common.ApiLogger.Warning("RegisterAppChannel error : ", err)
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	}
 
 	common.ApiLogger.WithFields(logrus.Fields{
-		"channelSig": sig,
+		"appChannel": ac,
 	}).Info("Register channel")
-	api.ResponseJSONWithData(c, http.StatusOK, api.Success, sig)
+	api.ResponseJSONWithData(c, http.StatusOK, api.Success, ac)
 }

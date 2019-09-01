@@ -48,7 +48,7 @@ func (porter *DevicePorter) TransferDevices() {
 
 func (porter *DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 	rows, err := porter.db.Query(`SELECT id, idfa, imei, app_key, os_type, os_version, source_ip, 
-        language, resolution, activate_time FROM sdk_device_report limit` + strconv.Itoa(limit))
+        language, resolution, activate_time FROM sdk_device_report limit ?`, strconv.Itoa(limit))
 	if err != nil {
 		return nil, err
 	}

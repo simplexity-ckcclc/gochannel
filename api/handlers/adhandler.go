@@ -16,11 +16,17 @@ import (
 func ClickHandler(c *gin.Context) {
 	var click click.ClickInfo
 	if err := c.ShouldBind(&click); err != nil {
-		api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
+		api.ResponseJSONWithExtraMsg(c, http.StatusBadRequest, api.RequiredParameterError, "Parameter missing")
 		return
 	}
 
-	appChannel, found := appchannel.SearchAppChannel(click.ChannelId)
+	click.OsType = strings.ToLower(click.OsType)
+	if ot := common.ParseOsType(click.OsType); ot == common.Unknown {
+		api.ResponseJSONWithExtraMsg(c, http.StatusBadRequest, api.RequiredParameterError, "OsType invalid")
+		return
+	}
+
+	appChannel, found := appchannel.SearchAppChannel(click.AppKey, click.ChannelId)
 	if !found {
 		api.ResponseJSON(c, http.StatusOK, api.ChannelNotFound)
 		return
@@ -34,7 +40,7 @@ func ClickHandler(c *gin.Context) {
 	//verify app key sig
 	sig := c.Query("sig")
 	if sig == "" {
-		api.ResponseJSON(c, http.StatusBadRequest, api.RequiredParameterMissing)
+		api.ResponseJSONWithExtraMsg(c, http.StatusBadRequest, api.RequiredParameterError, "sig is blank")
 		return
 	}
 	sourceURL := buildSourceURL(click)
@@ -72,14 +78,5 @@ func ClickHandler(c *gin.Context) {
 }
 
 func buildSourceURL(click click.ClickInfo) string {
-	var sb strings.Builder
-	sb.WriteString("appKey=")
-	sb.WriteString(click.AppKey)
-	sb.WriteString("&channelId=")
-	sb.WriteString(click.ChannelId)
-	sb.WriteString("&deviceId=")
-	sb.WriteString(click.DeviceId)
-	sb.WriteString("&clickTime=")
-	sb.WriteString(strconv.FormatInt(click.ClickTime, 10))
-	return sb.String()
+	return strings.Join([]string{click.AppKey, click.ChannelId, click.DeviceId, strconv.FormatInt(click.ClickTime, 10)}, "-")
 }

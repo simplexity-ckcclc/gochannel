@@ -2,23 +2,16 @@ package common
 
 import "strings"
 
-type ChannelType int
+type ChannelType string
 
 const (
-	UnknownChannelType ChannelType = iota
-	IOSChannelType
-	AndroidChannelType
+	UnknownChannelType ChannelType = "unknown"
+	IOSChannelType     ChannelType = "ios"
+	AndroidChannelType ChannelType = "android"
 )
 
 func (ct ChannelType) String() string {
-	switch ct {
-	case IOSChannelType:
-		return "ios"
-	case AndroidChannelType:
-		return "android"
-	default:
-		return ""
-	}
+	return string(ct)
 }
 
 func ParseChannelType(ct string) ChannelType {
@@ -34,9 +27,10 @@ func ParseChannelType(ct string) ChannelType {
 }
 
 type AppChannel struct {
-	AppKey      string
-	ChannelId   string
-	ChannelType ChannelType
-	PublicKey   string
-	PrivateKey  string
+	AppKey      string      `json:"app_key"`
+	ChannelId   string      `json:"channel"`
+	ChannelType ChannelType `json:"channel_type"`
+	PublicKey   string      `json:"pub_key"`
+	PrivateKey  string      `json:"pri_key"`
+	CallbackUrl string      `json:"-"`
 }

@@ -10,7 +10,7 @@ type ClickInfo struct {
 	AppKey    string `json:"app_key" form:"appKey" binding:"required"`
 	ChannelId string `json:"channel_id" form:"channelId" binding:"required"`
 	DeviceId  string `json:"device_id" form:"deviceId" binding:"required"` // idfa or imei
-	OsType    string `json:"os_type" form:"osType" binding:"required"`     // idfa or imei
+	OsType    string `json:"os_type" form:"osType" binding:"required"`
 	ClickTime int64  `json:"click_time" form:"clickTime" binding:"required"`
 }
 

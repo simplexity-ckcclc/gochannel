@@ -47,7 +47,7 @@ func (porter ClickPorter) TransferClicks() {
 }
 
 func (porter ClickPorter) getClickInfos(limit int) ([]ClickInfo, error) {
-	rows, err := porter.db.Query(`SELECT id, app_key, channel_id, os_type, device_id, click_time FROM click_info limit ` +
+	rows, err := porter.db.Query(`SELECT id, app_key, channel_id, os_type, device_id, click_time FROM click_info limit ?`,
 		strconv.Itoa(limit))
 	if err != nil {
 		return nil, err

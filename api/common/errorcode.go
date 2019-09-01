@@ -16,9 +16,9 @@ var (
 		Code:    10000,
 		Message: "Internal server error",
 	}
-	RequiredParameterMissing = ErrorCode{
+	RequiredParameterError = ErrorCode{
 		Code:    20000,
-		Message: "Required parameter missing",
+		Message: "Required parameter error",
 	}
 	ChannelNotFound = ErrorCode{
 		Code:    20100,
