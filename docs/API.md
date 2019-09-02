@@ -32,12 +32,19 @@ POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId
 请求示例
 ```json
 {
-    "app_key": "appkeyA",   // APP标志
-    "channel": "channelA",  // 渠道标志
-    "channel_type": "ios",  // 渠道类型，ios， android，etc.
-    "callback_url": "http://localhost:7810/channel-callback"    // 匹配结果回调url
+    "app_key": "appkeyA",
+    "channel": "channelA",
+    "channel_type": "ios",
+    "callback_url": "http://localhost:7810/channel-callback" 
 }
 ```
+
+|字段|含义|
+|--|--|
+|app_key | 应用APP|
+|channel | 渠道标识|
+|channel_type | 渠道类型，ios， android，etc.|
+|callback_url | 匹配结果回调url|
 
 注：请求需要url encode，返回结果格式为(非0为错误)。其中，公钥PublicKey和私钥PrivateKey均经过base64编码。
 ```json
@@ -58,3 +65,18 @@ POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId
  POST http://localhost:8480/internal/channell/evict?appKey=${appKey}&channel=${channel}&nonce=${nonce}&sig=${sig}
 ```
 字段含义及要求同注册channel。
+
+---
+
+### 错误码
+|code|message|含义|
+|--|--|--|
+| 0 | Success | 成功 |
+| 10000 | Internal server error | 系统内部错误 |
+| 20000 | Required parameter error | 参数错误 |
+| 20100 | Channel not found | 渠道标志不存在 | 
+| 20101 | Duplicate channel | 重复渠道 |
+| 20102 | App-Channel unmatched | APP渠道组合不存在 |
+| 20103 | Channel type invalid | 未知的渠道类型 | 
+| 20200 | Channel type invalid | 签名无效 |
+| 20300 | Duplicate nonce | 重复nonce值 | 

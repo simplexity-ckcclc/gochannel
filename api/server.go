@@ -52,7 +52,7 @@ func router() *gin.Engine {
 		adGroup.POST("/click", handlers.ClickHandler)
 	}
 
-	internalGroup := router.Group("/internal")
+	internalGroup := router.Group("/ad/internal")
 	internalGroup.Use(authRequired())
 	{
 		internalGroup.POST("/channel/evict", handlers.EvictChannelHandler)
