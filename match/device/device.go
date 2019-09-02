@@ -23,7 +23,7 @@ type MatchInfo struct {
 	ClickTime int64
 }
 
-func (device Device) ResetMatchInfo() {
+func (device *Device) ResetMatchInfo() {
 	device.MatchInfo = &MatchInfo{
 		IsMatched: false,
 		ClickTime: 0,

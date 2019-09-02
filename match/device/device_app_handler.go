@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/olivere/elastic.v6"
+	"strings"
 	"time"
 )
 
@@ -60,10 +60,10 @@ runningLoop:
 					}
 				}
 
-				fmt.Println(matchedDevices)
 				if len(matchedDevices) > 0 {
 					if err := handler.callbacker.preHandle(matchedDevices); err != nil {
 						common.MatchLogger.Error("PreHandle matched devices error.", err)
+						continue
 					}
 				}
 
@@ -140,8 +140,9 @@ func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batc
 		if err := json.Unmarshal(*value.Source, &device); err != nil {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"value": value.Source,
-			}).Error("Construct device from es error", err)
+			}).Error("Construct device from es error.", err)
 		}
+		device.OsType = common.ParseOsType(strings.ToLower(string(device.OsType)))
 		devices = append(devices, device)
 	}
 	return devices

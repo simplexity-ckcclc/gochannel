@@ -26,7 +26,7 @@ func NewClickPorter(database *sql.DB, client *elastic.Client) *ClickPorter {
 }
 
 func (porter ClickPorter) TransferClicks() {
-	esDeviceIndex := config.GetString(config.EsClickIndex)
+	esClickIndex := config.GetString(config.EsClickIndex)
 	for {
 		clicks, err := porter.getClickInfos(config.GetInt(config.EsClickBatchSize))
 		if err != nil {
@@ -34,7 +34,7 @@ func (porter ClickPorter) TransferClicks() {
 		}
 
 		if len(clicks) > 0 {
-			if err = porter.putClickIntoEs(clicks, esDeviceIndex); err == nil {
+			if err = porter.putClickIntoEs(clicks, esClickIndex); err == nil {
 				if err = porter.deleteClicks(clicks); err != nil {
 					common.ApiLogger.Error("Delete click infos error. ", err)
 				}

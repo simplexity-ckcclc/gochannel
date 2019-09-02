@@ -46,10 +46,10 @@ func ProduceDeviceProto() {
 
 func marshalDevice() (message []byte, err error) {
 	var ptime *timestamp.Timestamp
-	ptime, err = ptypes.TimestampProto(time.Unix(1562238598, 132000000))
+	ptime, err = ptypes.TimestampProto(time.Unix(1567267210, 000000000))
 	device := &pb.SdkDeviceReport{
-		OsType:       pb.SdkDeviceReport_ANDROID,
-		Imei:         "1234567890123456",
+		OsType:       pb.SdkDeviceReport_IOS,
+		Idfa:         "bar",
 		AppKey:       "appkeyA",
 		Channel:      "channelA",
 		ActivateTime: ptime,

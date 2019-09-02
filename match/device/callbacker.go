@@ -63,13 +63,18 @@ func (cb Callbacker) preHandle(devices []*Device) (err error) {
 			deviceId = device.Imei
 		}
 
-		sqlStr += "(?, ?, ?),"
+		sqlStr += "(?, ?, ?, ?, ?, ?),"
 		vals = append(vals, device.AppKey, device.MatchInfo.Channel, deviceId, device.OsType.String(),
 			device.MatchInfo.ClickTime, device.ActivateTime)
 	}
 	sqlStr = strings.TrimSuffix(sqlStr, ",")
 
-	stmt, _ := cb.db.Prepare(sqlStr)
+	var stmt *sql.Stmt
+	stmt, err = cb.db.Prepare(sqlStr)
+	if err != nil {
+		return
+	}
+
 	_, err = stmt.Exec(vals...)
 	return
 }
@@ -89,7 +94,8 @@ runningLoop:
 
 			if len(callbackInfos) > 0 {
 				for _, callbackInfo := range callbackInfos {
-					go cb.callback(callbackInfo)
+					//go cb.callback(callbackInfo)
+					cb.callback(callbackInfo)
 				}
 			} else {
 				time.Sleep(10 * time.Second)
@@ -106,7 +112,14 @@ func (cb Callbacker) callback(info callbackInfo) {
 		return
 	}
 
-	resp, _ := http.Post(callbackUrl, "application/json", strings.NewReader(string(reqBody[:])))
+	resp, err := http.Post(callbackUrl, "application/json", strings.NewReader(string(reqBody[:])))
+	if err != nil {
+		common.MatchLogger.WithFields(logrus.Fields{
+			"callbackUrl": callbackUrl,
+			"reqBody":     string(reqBody[:]),
+		}).Error("Post callback info error.", err)
+		return
+	}
 	defer resp.Body.Close()
 
 	respBody, _ := ioutil.ReadAll(resp.Body)
@@ -145,7 +158,7 @@ func (cb *Callbacker) getCallbackInfos(limit int) ([]callbackInfo, error) {
 	var callbackInfos []callbackInfo
 	for rows.Next() {
 		callback := new(callbackInfo)
-		if err = rows.Scan(&callback.Id, &callback.AppKey, &callback.Channel, &callback.ClickTime, &callback.ActivateTime); err != nil {
+		if err = rows.Scan(&callback.Id, &callback.AppKey, &callback.Channel, &callback.DeviceId, &callback.ClickTime, &callback.ActivateTime); err != nil {
 			return nil, err
 		}
 		callbackInfos = append(callbackInfos, *callback)
@@ -160,12 +173,13 @@ func (cb *Callbacker) deleteCallbackInfo(info callbackInfo) error {
 }
 
 func (cb Callbacker) getCallbackUrl(appKey string, channel string) (callbackUrl string) {
-	if err := common.DB.QueryRow("SELECT callback_url FROM callback_info WHERE app_key = ? and channel_id = ?", appKey, channel).
-		Scan(&callbackUrl); err != nil && err != sql.ErrNoRows {
+	if err := cb.db.QueryRow("SELECT callback_url FROM app_channel WHERE app_key = ? AND channel_id = ?", appKey, channel).
+		Scan(&callbackUrl); err != nil {
 		common.MatchLogger.WithFields(logrus.Fields{
 			"appKey":  appKey,
 			"channel": channel,
-		}).Error("Get callback url error")
+		}).Error("Get callback url error.", err)
 	}
+
 	return
 }
