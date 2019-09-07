@@ -2,6 +2,14 @@ package device
 
 import "github.com/simplexity-ckcclc/gochannel/common"
 
+type DeviceStatus int
+
+const (
+	New DeviceStatus = iota
+	Processed
+	Matched
+)
+
 type Device struct {
 	Id           int64         `json:"id,omitempty"`
 	Imei         string        `json:"imei,omitempty"`
@@ -14,18 +22,18 @@ type Device struct {
 	Language     string        `json:"language,omitempty"`
 	Resolution   string        `json:"resolution,omitempty"`
 	SourceIp     string        `json:"source_ip,omitempty"`
-	MatchInfo    *MatchInfo    `json:"-"`
+	MatchInfo    *MatchInfo    `json:"match_info"`
+	ESId         string        `json:"es_id"`
+	Status       DeviceStatus  `json:"status"`
 }
 
 type MatchInfo struct {
-	IsMatched bool
-	Channel   string
-	ClickTime int64
+	Channel   string `json:"channel,omitempty"`
+	ClickTime int64  `json:"click_time,omitempty"`
 }
 
 func (device *Device) ResetMatchInfo() {
 	device.MatchInfo = &MatchInfo{
-		IsMatched: false,
 		ClickTime: 0,
 		Channel:   "",
 	}

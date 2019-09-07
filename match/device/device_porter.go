@@ -3,7 +3,6 @@ package device
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
@@ -13,6 +12,7 @@ import (
 	"time"
 )
 
+// dump mysql to es. Can be replace by third-party open-source tool [go-mysql-elasticsearch](https://github.com/siddontang/go-mysql-elasticsearch)
 type DevicePorter struct {
 	db       *sql.DB
 	esClient *elastic.Client
@@ -70,18 +70,11 @@ func (porter *DevicePorter) getSdkDevices(limit int) ([]Device, error) {
 func (porter *DevicePorter) putDevicesIntoEs(devices []Device, index string) error {
 	bulkRequest := porter.esClient.Bulk()
 	for _, device := range devices {
-		deviceJson, err := json.Marshal(device)
-		if err != nil {
-			common.MatchLogger.WithFields(logrus.Fields{
-				"device": device,
-			}).Error("JSON marshal device error : ", err)
-			continue
-		}
-
+		device.Status = New
 		req := elastic.NewBulkIndexRequest().
 			Index(index).
 			Type(device.AppKey).
-			Doc(string(deviceJson))
+			Doc(device)
 		bulkRequest.Add(req)
 	}
 

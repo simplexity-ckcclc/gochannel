@@ -12,16 +12,12 @@ import (
 	"time"
 )
 
-type DeviceStatus int
-
-const Processed DeviceStatus = iota
-
 type DeviceAppHandler struct {
 	appKey   string
 	esClient *elastic.Client
 	stopChan chan bool
 	// channelType(ios, android, gdt, etc.) - matcher
-	matchers   map[common.ChannelType]*Matcher
+	matchers   map[common.ChannelType]Matcher
 	callbacker *Callbacker
 }
 
@@ -40,23 +36,29 @@ runningLoop:
 				// New appKey, process the last 3 days
 				latestProcessTime = common.TimeToMillis(time.Now().AddDate(0, 0, -3))
 			}
-			processEndTime := latestProcessTime + config.GetInt64(config.ProcessPeriod)
+			processEndTime := latestProcessTime + config.GetInt64(config.ProcessPeriod) - common.TimeDurationToMillis(2*time.Second)
+			// ES segment flush duration, for insert new sdk device into es
+			if processEndTime < latestProcessTime {
+				time.Sleep(2 * time.Second)
+				continue
+			}
 
 			var matchedDevices []*Device
-			devices := handler.getDevices(latestProcessTime, processEndTime, 5)
+			devices, newLatestProcessTime := handler.getDevices(latestProcessTime, processEndTime, 5)
 			if len(devices) > 0 {
 				for _, device := range devices {
-					device.ResetMatchInfo()
 					for _, matcher := range handler.matchers {
-						if err := (*matcher).Match(device); err != nil {
+						if err := matcher.Match(device); err != nil {
 							common.MatchLogger.WithFields(logrus.Fields{
 								"device": device,
 							}).Error("match device error.", err)
 						}
 					}
 
-					if device.MatchInfo.IsMatched {
+					if device.Status == Matched {
 						matchedDevices = append(matchedDevices, device)
+					} else {
+						device.Status = Processed
 					}
 				}
 
@@ -67,12 +69,15 @@ runningLoop:
 					}
 				}
 
-				if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
+				_ = handler.updateDevices(devices)
+
+				if err := updateLatestProcessTime(handler.appKey, newLatestProcessTime); err != nil {
 					common.MatchLogger.WithFields(logrus.Fields{
 						"appKey":      handler.appKey,
 						"processTime": processEndTime,
 					}).Error("Update process time error.", err)
 				}
+				time.Sleep(2 * time.Second) // ES segment flush duration, for update device status
 			} else {
 				common.MatchLogger.WithFields(logrus.Fields{
 					"startTime": latestProcessTime,
@@ -112,10 +117,11 @@ func updateLatestProcessTime(appKey string, processTime int64) (err error) {
 	return
 }
 
-func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) (devices []*Device) {
+func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batchSize int) (devices []*Device, latestProcessTime int64) {
 	index := config.GetString(config.EsDeviceIndex)
 	query := elastic.NewBoolQuery().
-		MustNot(elastic.NewTermQuery("status", Processed)).
+		//MustNot(elastic.NewTermQuery("status", Matched)).
+		Must(elastic.NewTermQuery("status", New)).
 		Must(elastic.NewTermQuery("app_key.keyword", handler.appKey)).
 		Must(elastic.NewRangeQuery("activate_time").Gte(startTime).Lt(endTime))
 
@@ -135,15 +141,52 @@ func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batc
 		return
 	}
 
-	var device *Device
 	for _, value := range esResponse.Hits.Hits {
+		var device Device
 		if err := json.Unmarshal(*value.Source, &device); err != nil {
 			common.MatchLogger.WithFields(logrus.Fields{
 				"value": value.Source,
 			}).Error("Construct device from es error.", err)
 		}
 		device.OsType = common.ParseOsType(strings.ToLower(string(device.OsType)))
-		devices = append(devices, device)
+		device.ESId = value.Id
+		device.ResetMatchInfo()
+		devices = append(devices, &device)
+
+		if latestProcessTime < device.ActivateTime {
+			latestProcessTime = device.ActivateTime
+		}
 	}
-	return devices
+	return
+}
+
+func (handler *DeviceAppHandler) updateDevices(devices []*Device) error {
+	index := config.GetString(config.EsDeviceIndex)
+	bulkRequest := handler.esClient.Bulk()
+	for _, device := range devices {
+		req := elastic.NewBulkUpdateRequest().
+			Index(index).
+			Type(device.AppKey).
+			Id(device.ESId).
+			Doc(device).
+			DocAsUpsert(true)
+		bulkRequest.Add(req)
+	}
+
+	bulkResponse, err := bulkRequest.Do(context.Background())
+	if err != nil {
+		common.MatchLogger.WithFields(logrus.Fields{
+			"devices": devices,
+		}).Error("Bulk put device doc error : ", err)
+		return err
+	}
+
+	failed := bulkResponse.Failed()
+	for _, failedResp := range failed {
+		common.MatchLogger.WithFields(logrus.Fields{
+			"id":       failedResp.Id,
+			"errCause": failedResp.Error,
+		}).Error("Bulk put device doc error : ", err)
+	}
+	return nil
 }

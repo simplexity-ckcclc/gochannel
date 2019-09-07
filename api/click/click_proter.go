@@ -3,7 +3,6 @@ package click
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/sirupsen/logrus"
@@ -13,6 +12,7 @@ import (
 	"time"
 )
 
+// dump mysql to es. Can be replace by third-party open-source tool [go-mysql-elasticsearch](https://github.com/siddontang/go-mysql-elasticsearch)
 type ClickPorter struct {
 	db       *sql.DB
 	esClient *elastic.Client
@@ -69,18 +69,10 @@ func (porter ClickPorter) getClickInfos(limit int) ([]ClickInfo, error) {
 func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) error {
 	bulkRequest := porter.esClient.Bulk()
 	for _, click := range clickInfos {
-		clickJson, err := json.Marshal(click)
-		if err != nil {
-			common.ApiLogger.WithFields(logrus.Fields{
-				"click": click,
-			}).Error("JSON marshal click error : ", err)
-			continue
-		}
-
 		req := elastic.NewBulkIndexRequest().
 			Index(index).
 			Type(click.AppKey).
-			Doc(string(clickJson))
+			Doc(click)
 		bulkRequest.Add(req)
 	}
 

@@ -64,7 +64,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 				appKey:     appChannel.AppKey,
 				esClient:   processor.esClient,
 				stopChan:   make(chan bool, 1),
-				matchers:   make(map[common.ChannelType]*Matcher),
+				matchers:   make(map[common.ChannelType]Matcher),
 				callbacker: processor.callbacker,
 			}
 			processor.appHandlers[appChannel.AppKey] = handler
@@ -79,7 +79,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 			// New app channel_type for this appKey
 			instantiateMatcherFunc := matcherMappings[appChannel.ChannelType]
 			matcher := instantiateMatcherFunc(processor.esClient)
-			handler.matchers[appChannel.ChannelType] = &matcher
+			handler.matchers[appChannel.ChannelType] = matcher
 			common.MatchLogger.WithFields(logrus.Fields{
 				"appKey":      appChannel.AppKey,
 				"channelType": appChannel.ChannelType,

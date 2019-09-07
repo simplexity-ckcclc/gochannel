@@ -96,6 +96,7 @@ runningLoop:
 				for _, callbackInfo := range callbackInfos {
 					//go cb.callback(callbackInfo)
 					cb.callback(callbackInfo)
+					_ = cb.deleteCallbackInfo(callbackInfo)
 				}
 			} else {
 				time.Sleep(10 * time.Second)
@@ -112,6 +113,7 @@ func (cb Callbacker) callback(info callbackInfo) {
 		return
 	}
 
+	// todo retry if fail
 	resp, err := http.Post(callbackUrl, "application/json", strings.NewReader(string(reqBody[:])))
 	if err != nil {
 		common.MatchLogger.WithFields(logrus.Fields{
@@ -136,16 +138,13 @@ func (cb Callbacker) callback(info callbackInfo) {
 			"callbackInfo": info,
 			"callbackUrl":  callbackUrl,
 		}).Info("Callback success.")
-		cb.deleteCallbackInfo(info)
 	} else {
 		common.MatchLogger.WithFields(logrus.Fields{
 			"callbackInfo": info,
 			"callbackUrl":  callbackUrl,
 			"response":     cbResp,
 		}).Error("Callback error.")
-		return
 	}
-
 }
 
 func (cb *Callbacker) getCallbackInfos(limit int) ([]callbackInfo, error) {

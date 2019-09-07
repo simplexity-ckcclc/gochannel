@@ -51,7 +51,7 @@ func (matcher IdfaMatcher) Match(device *Device) (err error) {
 		return
 	}
 
-	device.MatchInfo.IsMatched = true
+	device.Status = Matched
 	device.MatchInfo.ClickTime = clickTime
 	device.MatchInfo.Channel = click.ChannelId
 	return
