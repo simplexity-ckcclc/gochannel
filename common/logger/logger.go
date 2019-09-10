@@ -35,23 +35,23 @@ func (logger *ChannelLogger) With(fields map[string]interface{}) *ChannelLogger 
 }
 
 func (logger *ChannelLogger) Trace(args ...interface{}) {
-	logger.Logger.WithFields(logger.fields).Trace(args)
+	logger.Logger.WithFields(logger.fields).Trace(args...)
 }
 
 func (logger *ChannelLogger) Debug(args ...interface{}) {
-	logger.Logger.WithFields(logger.fields).Debug(args)
+	logger.Logger.WithFields(logger.fields).Debug(args...)
 }
 
 func (logger *ChannelLogger) Info(args ...interface{}) {
-	logger.Logger.WithFields(logger.fields).Info(args)
+	logger.Logger.WithFields(logger.fields).Info(args...)
 }
 
 func (logger *ChannelLogger) Warn(args ...interface{}) {
-	logger.Logger.WithFields(logger.fields).Warn(args)
+	logger.Logger.WithFields(logger.fields).Warn(args...)
 }
 
 func (logger *ChannelLogger) Error(args ...interface{}) {
-	logger.Logger.WithFields(logger.fields).Error(args)
+	logger.Logger.WithFields(logger.fields).Error(args...)
 }
 
 func InitLogger() (err error) {
