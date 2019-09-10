@@ -3,7 +3,7 @@ package device
 import (
 	"database/sql"
 	"github.com/simplexity-ckcclc/gochannel/common"
-	"github.com/sirupsen/logrus"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"gopkg.in/olivere/elastic.v6"
 	"time"
 )
@@ -33,7 +33,7 @@ runningLoop:
 	for {
 		select {
 		case <-processor.stopChan:
-			common.MatchLogger.Info("Device Handler stop")
+			logger.MatchLogger.Info("Device Handler stop")
 			break runningLoop
 		case <-ticker.C:
 			processor.startNewAppHandler()
@@ -53,7 +53,7 @@ func (processor *DeviceProcessor) Stop() {
 func (processor *DeviceProcessor) startNewAppHandler() {
 	appChannels, err := processor.scanAppChannels()
 	if err != nil {
-		common.MatchLogger.Error("Select app_channel from table app_channel error")
+		logger.MatchLogger.Error("Select app_channel from table app_channel error")
 		return
 	}
 
@@ -69,7 +69,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 			}
 			processor.appHandlers[appChannel.AppKey] = handler
 			go handler.start()
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"appKey": appChannel.AppKey,
 			}).Info("Start appHandler.")
 		}
@@ -80,7 +80,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 			instantiateMatcherFunc := matcherMappings[appChannel.ChannelType]
 			matcher := instantiateMatcherFunc(processor.esClient)
 			handler.matchers[appChannel.ChannelType] = matcher
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"appKey":      appChannel.AppKey,
 				"channelType": appChannel.ChannelType,
 			}).Info("Instantiate and add matcher to appHandler.")

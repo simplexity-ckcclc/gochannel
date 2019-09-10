@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"sync"
 )
 
@@ -16,7 +17,7 @@ func LoadAppChannels(db *sql.DB) error {
 	rows, err := db.Query("select app_key, channel_id, channel_type, public_key, private_key from app_channel;")
 	defer rows.Close()
 	if err != nil {
-		common.ApiLogger.Error("Load channel signature error : ", err)
+		logger.ApiLogger.Error("Load channel signature error : ", err)
 		return err
 	}
 
@@ -27,7 +28,7 @@ func LoadAppChannels(db *sql.DB) error {
 	for rows.Next() {
 		err = rows.Scan(&appKey, &channelId, &channelType, &pubKey, &priKey)
 		if err != nil {
-			common.ApiLogger.Error("Load channel signature error : ", err)
+			logger.ApiLogger.Error("Load channel signature error : ", err)
 			return err
 		}
 

@@ -3,9 +3,8 @@ package device
 import (
 	"context"
 	"database/sql"
-	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
-	"github.com/sirupsen/logrus"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"gopkg.in/olivere/elastic.v6"
 	"strconv"
 	"strings"
@@ -30,14 +29,14 @@ func (porter *DevicePorter) TransferDevices() {
 	for {
 		devices, err := porter.getSdkDevices(config.GetInt(config.EsDeviceBatchSize))
 		if err != nil {
-			common.MatchLogger.WithFields(logrus.Fields{}).Error("Get devices from db error : ", err)
+			logger.MatchLogger.Error("Get devices from db error : ", err)
 			continue
 		}
 
 		if len(devices) > 0 {
 			if err = porter.putDevicesIntoEs(devices, esDeviceIndex); err == nil {
 				if err = porter.deleteDevices(devices); err != nil {
-					common.MatchLogger.Error("Delete device error. ", err)
+					logger.MatchLogger.Error("Delete device error. ", err)
 				}
 			}
 		}
@@ -80,7 +79,7 @@ func (porter *DevicePorter) putDevicesIntoEs(devices []Device, index string) err
 
 	bulkResponse, err := bulkRequest.Do(context.Background())
 	if err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"devices": devices,
 		}).Error("Bulk put device doc error : ", err)
 		return err
@@ -88,7 +87,7 @@ func (porter *DevicePorter) putDevicesIntoEs(devices []Device, index string) err
 
 	failed := bulkResponse.Failed()
 	for _, failedResp := range failed {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"id":       failedResp.Id,
 			"errCause": failedResp.Error,
 		}).Error("Bulk put device doc error : ", err)

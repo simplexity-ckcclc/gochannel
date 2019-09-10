@@ -5,6 +5,7 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"github.com/simplexity-ckcclc/gochannel/match"
 )
 
@@ -35,7 +36,7 @@ func main() {
 }
 
 func initiate() (err error) {
-	if err = common.InitLogger(); err != nil {
+	if err = logger.InitLogger(); err != nil {
 		return
 	}
 

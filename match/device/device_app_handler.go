@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/olivere/elastic.v6"
 	"strings"
@@ -26,7 +27,7 @@ runningLoop:
 	for {
 		select {
 		case <-handler.stopChan:
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"appKey": handler.appKey,
 			}).Info("Device App Handler stop")
 			break runningLoop
@@ -49,7 +50,7 @@ runningLoop:
 				for _, device := range devices {
 					for _, matcher := range handler.matchers {
 						if err := matcher.Match(device); err != nil {
-							common.MatchLogger.WithFields(logrus.Fields{
+							logger.MatchLogger.With(logger.Fields{
 								"device": device,
 							}).Error("match device error.", err)
 						}
@@ -64,7 +65,7 @@ runningLoop:
 
 				if len(matchedDevices) > 0 {
 					if err := handler.callbacker.preHandle(matchedDevices); err != nil {
-						common.MatchLogger.Error("PreHandle matched devices error.", err)
+						logger.MatchLogger.Error("PreHandle matched devices error.", err)
 						continue
 					}
 				}
@@ -72,21 +73,21 @@ runningLoop:
 				_ = handler.updateDevices(devices)
 
 				if err := updateLatestProcessTime(handler.appKey, newLatestProcessTime); err != nil {
-					common.MatchLogger.WithFields(logrus.Fields{
+					logger.MatchLogger.WithFields(logrus.Fields{
 						"appKey":      handler.appKey,
 						"processTime": processEndTime,
 					}).Error("Update process time error.", err)
 				}
 				time.Sleep(2 * time.Second) // ES segment flush duration, for update device status
 			} else {
-				common.MatchLogger.WithFields(logrus.Fields{
+				logger.MatchLogger.With(logger.Fields{
 					"startTime": latestProcessTime,
 					"endTime":   processEndTime,
 					"appKey":    handler.appKey,
 				}).Info("No sdk device activation.")
 
 				if err := updateLatestProcessTime(handler.appKey, processEndTime); err != nil {
-					common.MatchLogger.WithFields(logrus.Fields{
+					logger.MatchLogger.With(logger.Fields{
 						"appKey":      handler.appKey,
 						"processTime": processEndTime,
 					}).Error("Update process time error.", err)
@@ -104,7 +105,7 @@ func (handler *DeviceAppHandler) stop() {
 func getLatestProcessTime(appKey string) (processTime int64) {
 	if err := common.DB.QueryRow("SELECT process_time FROM app_process_info WHERE app_key = ?", appKey).
 		Scan(&processTime); err != nil && err != sql.ErrNoRows {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"appKey": appKey,
 		}).Error("Get app_key last process time error")
 	}
@@ -133,7 +134,7 @@ func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batc
 		Size(batchSize).
 		Do(context.Background())
 	if err != nil {
-		common.MatchLogger.Error("Search es device error.", err)
+		logger.MatchLogger.Error("Search es device error.", err)
 		return
 	}
 
@@ -144,7 +145,7 @@ func (handler *DeviceAppHandler) getDevices(startTime int64, endTime int64, batc
 	for _, value := range esResponse.Hits.Hits {
 		var device Device
 		if err := json.Unmarshal(*value.Source, &device); err != nil {
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"value": value.Source,
 			}).Error("Construct device from es error.", err)
 		}
@@ -175,7 +176,7 @@ func (handler *DeviceAppHandler) updateDevices(devices []*Device) error {
 
 	bulkResponse, err := bulkRequest.Do(context.Background())
 	if err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"devices": devices,
 		}).Error("Bulk put device doc error : ", err)
 		return err
@@ -183,7 +184,7 @@ func (handler *DeviceAppHandler) updateDevices(devices []*Device) error {
 
 	failed := bulkResponse.Failed()
 	for _, failedResp := range failed {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"id":       failedResp.Id,
 			"errCause": failedResp.Error,
 		}).Error("Bulk put device doc error : ", err)

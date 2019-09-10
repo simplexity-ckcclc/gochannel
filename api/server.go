@@ -8,7 +8,7 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api/handlers"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
-	"github.com/sirupsen/logrus"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"net/http"
 	"time"
 )
@@ -37,7 +37,7 @@ func Serve() {
 	if err := server.ListenAndServe(); err != nil {
 		panic(err)
 	}
-	common.ApiLogger.Info("API server started!")
+	logger.ApiLogger.Info("API server started!")
 
 }
 
@@ -80,7 +80,7 @@ func authRequired() gin.HandlerFunc {
 		pubKey := config.GetString(config.ApiServerIntlPubKey)
 		valid, err := api.VerifyBase64WithRSAPubKey(nonce, pubKey, sig)
 		if err != nil {
-			common.ApiLogger.WithFields(logrus.Fields{
+			logger.ApiLogger.With(logger.Fields{
 				"pubKey": pubKey,
 			}).Error("Verify internal signature - VerifyBase64WithRSAPubKey error : ", err)
 			api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())

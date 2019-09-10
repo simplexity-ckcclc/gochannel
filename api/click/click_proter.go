@@ -3,9 +3,8 @@ package click
 import (
 	"context"
 	"database/sql"
-	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
-	"github.com/sirupsen/logrus"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"gopkg.in/olivere/elastic.v6"
 	"strconv"
 	"strings"
@@ -30,13 +29,13 @@ func (porter ClickPorter) TransferClicks() {
 	for {
 		clicks, err := porter.getClickInfos(config.GetInt(config.EsClickBatchSize))
 		if err != nil {
-			common.ApiLogger.WithFields(logrus.Fields{}).Error("Get click infos from db error : ", err)
+			logger.ApiLogger.Error("Get click infos from db error : ", err)
 		}
 
 		if len(clicks) > 0 {
 			if err = porter.putClickIntoEs(clicks, esClickIndex); err == nil {
 				if err = porter.deleteClicks(clicks); err != nil {
-					common.ApiLogger.Error("Delete click infos error. ", err)
+					logger.ApiLogger.Error("Delete click infos error. ", err)
 				}
 			}
 		}
@@ -78,7 +77,7 @@ func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) e
 
 	bulkResponse, err := bulkRequest.Do(context.Background())
 	if err != nil {
-		common.ApiLogger.WithFields(logrus.Fields{
+		logger.ApiLogger.With(logger.Fields{
 			"clickInfos": clickInfos,
 		}).Error("Bulk put click doc error : ", err)
 		return err
@@ -86,7 +85,7 @@ func (porter ClickPorter) putClickIntoEs(clickInfos []ClickInfo, index string) e
 
 	failed := bulkResponse.Failed()
 	for _, failedResp := range failed {
-		common.ApiLogger.WithFields(logrus.Fields{
+		logger.ApiLogger.With(logger.Fields{
 			"id":       failedResp.Id,
 			"errCause": failedResp.Error,
 		}).Error("Bulk put click doc error")

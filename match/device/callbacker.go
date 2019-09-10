@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -84,12 +85,12 @@ runningLoop:
 	for {
 		select {
 		case <-cb.stopChan:
-			common.MatchLogger.Info("Callbacker stop")
+			logger.MatchLogger.Info("Callbacker stop")
 			break runningLoop
 		default:
 			callbackInfos, err := cb.getCallbackInfos(5)
 			if err != nil {
-				common.MatchLogger.Error("Get callback infos error.", err)
+				logger.MatchLogger.Error("Get callback infos error.", err)
 			}
 
 			if len(callbackInfos) > 0 {
@@ -109,14 +110,14 @@ func (cb Callbacker) callback(info callbackInfo) {
 	callbackUrl := cb.getCallbackUrl(info.AppKey, info.Channel)
 	reqBody, err := json.Marshal(info)
 	if err != nil {
-		common.MatchLogger.Error("Marshal callback info error.", err)
+		logger.MatchLogger.Error("Marshal callback info error.", err)
 		return
 	}
 
 	// todo retry if fail
 	resp, err := http.Post(callbackUrl, "application/json", strings.NewReader(string(reqBody[:])))
 	if err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.WithFields(logrus.Fields{
 			"callbackUrl": callbackUrl,
 			"reqBody":     string(reqBody[:]),
 		}).Error("Post callback info error.", err)
@@ -127,19 +128,19 @@ func (cb Callbacker) callback(info callbackInfo) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	var cbResp callbackResponse
 	if err = json.Unmarshal(respBody, &cbResp); err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"respBody": respBody,
 		}).Error("UnMarshal callback response error.", err)
 		return
 	}
 
 	if cbResp.Code == int32(Success) {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"callbackInfo": info,
 			"callbackUrl":  callbackUrl,
 		}).Info("Callback success.")
 	} else {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"callbackInfo": info,
 			"callbackUrl":  callbackUrl,
 			"response":     cbResp,
@@ -174,7 +175,7 @@ func (cb *Callbacker) deleteCallbackInfo(info callbackInfo) error {
 func (cb Callbacker) getCallbackUrl(appKey string, channel string) (callbackUrl string) {
 	if err := cb.db.QueryRow("SELECT callback_url FROM app_channel WHERE app_key = ? AND channel_id = ?", appKey, channel).
 		Scan(&callbackUrl); err != nil {
-		common.MatchLogger.WithFields(logrus.Fields{
+		logger.MatchLogger.With(logger.Fields{
 			"appKey":  appKey,
 			"channel": channel,
 		}).Error("Get callback url error.", err)

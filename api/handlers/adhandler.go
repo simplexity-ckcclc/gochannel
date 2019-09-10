@@ -6,6 +6,7 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/common"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -46,13 +47,13 @@ func ClickHandler(c *gin.Context) {
 	sourceURL := buildSourceURL(click)
 	valid, err := api.VerifyBase64WithRSAPubKey(sourceURL, appChannel.PublicKey, sig)
 	if err != nil {
-		common.ApiLogger.WithFields(logrus.Fields{
+		logger.ApiLogger.WithFields(logrus.Fields{
 			"pubKey": appChannel.PublicKey,
 		}).Error("Verify click signature - VerifyBase64WithRSAPubKey error : ", err)
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	} else if !valid {
-		common.ApiLogger.WithFields(logrus.Fields{
+		logger.ApiLogger.With(logger.Fields{
 			"clickInfo": click,
 			"pubKey":    appChannel.PublicKey,
 			"sig":       sig,
@@ -62,7 +63,7 @@ func ClickHandler(c *gin.Context) {
 	}
 
 	if err := click.InsertDB(common.DB); err != nil {
-		common.ApiLogger.WithFields(logrus.Fields{
+		logger.ApiLogger.With(logger.Fields{
 			"clickInfo": click,
 			"pubKey":    appChannel.PublicKey,
 			"sig":       sig,
@@ -71,7 +72,7 @@ func ClickHandler(c *gin.Context) {
 		return
 	}
 
-	common.ApiLogger.WithFields(logrus.Fields{
+	logger.ApiLogger.With(logger.Fields{
 		"clickInfo": click,
 	}).Info("Insert click info")
 	api.ResponseJSON(c, http.StatusOK, api.Success)

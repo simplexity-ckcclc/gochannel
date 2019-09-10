@@ -6,8 +6,8 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	pb "github.com/simplexity-ckcclc/gochannel/protos"
-	"github.com/sirupsen/logrus"
 )
 
 type SdkMsgReceiver struct {
@@ -45,14 +45,14 @@ func (receiver SdkMsgReceiver) consumeKafkaMsg() {
 	// consume errors
 	go func() {
 		for err := range consumer.Errors() {
-			common.MatchLogger.Error("Kafka consumer error : ", err)
+			logger.MatchLogger.Error("Kafka consumer error : ", err)
 		}
 	}()
 
 	// consume notifications
 	go func() {
 		for ntf := range consumer.Notifications() {
-			common.MatchLogger.Debug("Kafka rebalanced notifications : ", ntf)
+			logger.MatchLogger.Debug("Kafka rebalanced notifications : ", ntf)
 		}
 	}()
 
@@ -70,21 +70,21 @@ type PbSdkMsgHandler struct {
 func (handler PbSdkMsgHandler) handle(message []byte) {
 	device := &pb.SdkDeviceReport{}
 	if err := proto.Unmarshal(message, device); err != nil {
-		common.MatchLogger.Error("Parse device error : ", err)
+		logger.MatchLogger.Error("Parse device error : ", err)
 	} else {
 		if !validate(device) {
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"Device ": device,
 			}).Debug("Invalid sdk message.")
 			return
 		}
 
 		if err := insertIntoDB(device); err != nil {
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"Device ": device,
 			}).Error("Insert into DB error.", err)
 		} else {
-			common.MatchLogger.WithFields(logrus.Fields{
+			logger.MatchLogger.With(logger.Fields{
 				"Device ": device,
 			}).Debug("Insert into DB.")
 		}

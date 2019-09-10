@@ -5,7 +5,7 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api/appchannel"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
 	"github.com/simplexity-ckcclc/gochannel/common"
-	"github.com/sirupsen/logrus"
+	"github.com/simplexity-ckcclc/gochannel/common/logger"
 	"net/http"
 	"strings"
 )
@@ -19,7 +19,7 @@ func EvictChannelHandler(c *gin.Context) {
 		return
 	}
 
-	common.ApiLogger.WithFields(logrus.Fields{
+	logger.ApiLogger.With(logger.Fields{
 		"channelId": channelId,
 	}).Info("Evict channel")
 	api.ResponseJSON(c, http.StatusOK, api.Success)
@@ -52,12 +52,12 @@ func RegisterChannelHandler(c *gin.Context) {
 	}
 
 	if err := appchannel.RegisterAppChannel(common.DB, &ac); err != nil {
-		common.ApiLogger.Warning("RegisterAppChannel error : ", err)
+		logger.ApiLogger.Warning("RegisterAppChannel error : ", err)
 		api.ResponseJSONWithExtraMsg(c, http.StatusInternalServerError, api.InternalServerError, err.Error())
 		return
 	}
 
-	common.ApiLogger.WithFields(logrus.Fields{
+	logger.ApiLogger.With(logger.Fields{
 		"appChannel": ac,
 	}).Info("Register channel")
 	api.ResponseJSONWithData(c, http.StatusOK, api.Success, ac)
