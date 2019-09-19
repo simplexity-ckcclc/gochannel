@@ -41,7 +41,8 @@ runningLoop:
 		}
 	}
 }
-
+// do not use context.Cancel here, because DeviceAppHandler and Callbacker do process device in batch in a time.
+// don`t want to interrupt the process in case of unstable state, but wait for the inflight batch complete
 func (processor *DeviceProcessor) Stop() {
 	processor.stopChan <- true
 	for _, appHandler := range processor.appHandlers {

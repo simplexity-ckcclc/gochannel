@@ -47,6 +47,8 @@ func NewCallbacker(db *sql.DB) (cb *Callbacker) {
 	return
 }
 
+// do not use context.Cancel here, because Callbacker do process device in batch in a time.
+// don`t want to interrupt the process in case of unstable state, but wait for the inflight batch complete
 func (cb Callbacker) stop() {
 	cb.stopChan <- true
 }

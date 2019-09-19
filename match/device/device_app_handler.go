@@ -98,6 +98,8 @@ runningLoop:
 	}
 }
 
+// do not use context.Cancel here, because DeviceAppHandler do process device in batch in a time.
+// don`t want to interrupt the process in case of unstable state, but wait for the inflight batch complete
 func (handler *DeviceAppHandler) stop() {
 	handler.stopChan <- true
 }
