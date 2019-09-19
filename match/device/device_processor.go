@@ -1,6 +1,7 @@
 package device
 
 import (
+	"context"
 	"database/sql"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/logger"
@@ -9,20 +10,20 @@ import (
 )
 
 type DeviceProcessor struct {
+	ctx         context.Context
 	db          *sql.DB
 	esClient    *elastic.Client
 	appHandlers map[string]*DeviceAppHandler
 	callbacker  *Callbacker
-	stopChan    chan bool
 }
 
-func NewDeviceProcessor(database *sql.DB, client *elastic.Client) *DeviceProcessor {
+func NewDeviceProcessor(context context.Context, database *sql.DB, client *elastic.Client) *DeviceProcessor {
 	return &DeviceProcessor{
+		ctx:         context,
 		db:          database,
 		esClient:    client,
 		appHandlers: make(map[string]*DeviceAppHandler),
-		stopChan:    make(chan bool, 1),
-		callbacker:  NewCallbacker(database),
+		callbacker:  NewCallbacker(context, database),
 	}
 }
 
@@ -32,7 +33,7 @@ func (processor *DeviceProcessor) Start() {
 runningLoop:
 	for {
 		select {
-		case <-processor.stopChan:
+		case <-processor.ctx.Done():
 			logger.MatchLogger.Info("Device Handler stop")
 			break runningLoop
 		case <-ticker.C:
@@ -40,14 +41,6 @@ runningLoop:
 			ticker = time.NewTicker(time.Minute * 1)
 		}
 	}
-}
-
-func (processor *DeviceProcessor) Stop() {
-	processor.stopChan <- true
-	for _, appHandler := range processor.appHandlers {
-		appHandler.stop()
-	}
-	processor.callbacker.stop()
 }
 
 func (processor *DeviceProcessor) startNewAppHandler() {
@@ -60,13 +53,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 	for _, appChannel := range appChannels {
 		if _, ok := processor.appHandlers[appChannel.AppKey]; !ok {
 			// New appKey, start new DeviceAppHandler
-			handler := &DeviceAppHandler{
-				appKey:     appChannel.AppKey,
-				esClient:   processor.esClient,
-				stopChan:   make(chan bool, 1),
-				matchers:   make(map[common.ChannelType]Matcher),
-				callbacker: processor.callbacker,
-			}
+			handler := newDeviceAppHandler(processor.ctx, appChannel.AppKey, processor.esClient, processor.callbacker)
 			processor.appHandlers[appChannel.AppKey] = handler
 			go handler.start()
 			logger.MatchLogger.With(logger.Fields{

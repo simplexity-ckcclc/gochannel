@@ -14,19 +14,29 @@ import (
 )
 
 type DeviceAppHandler struct {
+	ctx      context.Context
 	appKey   string
 	esClient *elastic.Client
-	stopChan chan bool
 	// channelType(ios, android, gdt, etc.) - matcher
 	matchers   map[common.ChannelType]Matcher
 	callbacker *Callbacker
+}
+
+func newDeviceAppHandler(context context.Context, appkey string, client *elastic.Client, cb *Callbacker) *DeviceAppHandler {
+	return &DeviceAppHandler{
+		ctx:        context,
+		appKey:     appkey,
+		esClient:   client,
+		matchers:   make(map[common.ChannelType]Matcher),
+		callbacker: cb,
+	}
 }
 
 func (handler *DeviceAppHandler) start() {
 runningLoop:
 	for {
 		select {
-		case <-handler.stopChan:
+		case <-handler.ctx.Done():
 			logger.MatchLogger.With(logger.Fields{
 				"appKey": handler.appKey,
 			}).Info("Device App Handler stop")
@@ -96,10 +106,6 @@ runningLoop:
 			}
 		}
 	}
-}
-
-func (handler *DeviceAppHandler) stop() {
-	handler.stopChan <- true
 }
 
 func getLatestProcessTime(appKey string) (processTime int64) {

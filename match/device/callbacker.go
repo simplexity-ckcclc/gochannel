@@ -1,6 +1,7 @@
 package device
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"github.com/simplexity-ckcclc/gochannel/common"
@@ -21,8 +22,8 @@ const (
 )
 
 type Callbacker struct {
-	db       *sql.DB
-	stopChan chan bool
+	ctx context.Context
+	db  *sql.DB
 }
 
 type callbackInfo struct {
@@ -39,16 +40,13 @@ type callbackResponse struct {
 	Message string `json:"message"`
 }
 
-func NewCallbacker(db *sql.DB) (cb *Callbacker) {
+func NewCallbacker(context context.Context, database *sql.DB) (cb *Callbacker) {
 	cb = &Callbacker{
-		db: db,
+		ctx: context,
+		db:  database,
 	}
 	go cb.processCallbackInfo()
 	return
-}
-
-func (cb Callbacker) stop() {
-	cb.stopChan <- true
 }
 
 func (cb Callbacker) preHandle(devices []*Device) (err error) {
@@ -84,7 +82,7 @@ func (cb Callbacker) processCallbackInfo() {
 runningLoop:
 	for {
 		select {
-		case <-cb.stopChan:
+		case <-cb.ctx.Done():
 			logger.MatchLogger.Info("Callbacker stop")
 			break runningLoop
 		default:
