@@ -22,6 +22,16 @@ type DeviceAppHandler struct {
 	callbacker *Callbacker
 }
 
+func newDeviceAppHandler(appkey string, client *elastic.Client, cb *Callbacker) *DeviceAppHandler {
+	return &DeviceAppHandler{
+		appKey:     appkey,
+		esClient:   client,
+		stopChan:   make(chan bool, 1),
+		matchers:   make(map[common.ChannelType]Matcher),
+		callbacker: cb,
+	}
+}
+
 func (handler *DeviceAppHandler) start() {
 runningLoop:
 	for {

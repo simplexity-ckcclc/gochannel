@@ -61,13 +61,7 @@ func (processor *DeviceProcessor) startNewAppHandler() {
 	for _, appChannel := range appChannels {
 		if _, ok := processor.appHandlers[appChannel.AppKey]; !ok {
 			// New appKey, start new DeviceAppHandler
-			handler := &DeviceAppHandler{
-				appKey:     appChannel.AppKey,
-				esClient:   processor.esClient,
-				stopChan:   make(chan bool, 1),
-				matchers:   make(map[common.ChannelType]Matcher),
-				callbacker: processor.callbacker,
-			}
+			handler := newDeviceAppHandler(appChannel.AppKey, processor.esClient, processor.callbacker)
 			processor.appHandlers[appChannel.AppKey] = handler
 			go handler.start()
 			logger.MatchLogger.With(logger.Fields{

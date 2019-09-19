@@ -5,7 +5,7 @@
 POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId=${deviceId}&clickTime=${clickTime}&sig=${sig}
 ```
 |字段|含义|
-|--|--|
+|:----:|:----:|
 |appKey | 应用APP|
 |channel | 渠道标识|
 |deviceId | imei或者idfa|
@@ -25,7 +25,7 @@ POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId
  POST http://localhost:8480/internal/channel/register?nonce=${nonce}&sig=${sig}
 ```
 |字段|含义|
-|--|--|
+|:----:|:----:|
 |nonce | 调用方随机生成，防止重放攻击|
 |sig | 对nonce字段使用管理员RSA私钥签名，然后进行base64编码|
 
@@ -40,7 +40,7 @@ POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId
 ```
 
 |字段|含义|
-|--|--|
+|:----:|:----:|
 |app_key | 应用APP|
 |channel | 渠道标识|
 |channel_type | 渠道类型，ios， android，etc.|
@@ -70,7 +70,7 @@ POST http://${host}:8480/ad/click?appKey=${appkey}&channelId=${channel}&deviceId
 
 ### 错误码
 |code|message|含义|
-|--|--|--|
+|:----:|:----:|:----:|
 | 0 | Success | 成功 |
 | 10000 | Internal server error | 系统内部错误 |
 | 20000 | Required parameter error | 参数错误 |

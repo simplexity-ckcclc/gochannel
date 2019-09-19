@@ -26,5 +26,4 @@ func Serve() {
 	logger.MatchLogger.Info("Starting process data")
 
 	logger.MatchLogger.Info("Match server started")
-
 }
