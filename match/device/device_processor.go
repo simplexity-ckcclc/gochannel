@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const (
+	_defaultProcessIntervalSec = 1
+)
+
 type DeviceProcessor struct {
 	db          *sql.DB
 	esClient    *elastic.Client
@@ -28,7 +32,7 @@ func NewDeviceProcessor(database *sql.DB, client *elastic.Client) *DeviceProcess
 
 func (processor *DeviceProcessor) Start() {
 	processor.startNewAppHandler()
-	ticker := time.NewTicker(time.Minute * 1)
+	ticker := time.NewTicker(time.Minute * _defaultProcessIntervalSec)
 runningLoop:
 	for {
 		select {
@@ -37,10 +41,11 @@ runningLoop:
 			break runningLoop
 		case <-ticker.C:
 			processor.startNewAppHandler()
-			ticker = time.NewTicker(time.Minute * 1)
+			ticker = time.NewTicker(time.Minute * _defaultProcessIntervalSec)
 		}
 	}
 }
+
 // do not use context.Cancel here, because DeviceAppHandler and Callbacker do process device in batch in a time.
 // don`t want to interrupt the process in case of unstable state, but wait for the inflight batch complete
 func (processor *DeviceProcessor) Stop() {

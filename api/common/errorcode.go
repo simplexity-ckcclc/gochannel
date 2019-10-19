@@ -5,8 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type E ErrorCode
-
 var (
 	Success = ErrorCode{
 		Code:    0,

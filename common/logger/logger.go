@@ -17,6 +17,7 @@ var (
 // wrap underline logger implementation, only expose generic interface
 type ChannelLogger struct {
 	*logrus.Logger
+
 	fields map[string]interface{}
 }
 

@@ -10,7 +10,7 @@ import (
 	"errors"
 )
 
-const KEY_SIZE = 1024
+const _rsaKeySize = 1024
 
 func VerifyBase64WithRSAPubKey(plainText string, publicKey string, sig string) (bool, error) {
 	decodedPubKey, err := base64.StdEncoding.DecodeString(publicKey)
@@ -32,7 +32,7 @@ func VerifyBase64WithRSAPubKey(plainText string, publicKey string, sig string) (
 }
 
 func GenerateRSAKeyPair() (string, string, error) {
-	priKeyI, err := rsa.GenerateKey(rand.Reader, KEY_SIZE)
+	priKeyI, err := rsa.GenerateKey(rand.Reader, _rsaKeySize)
 	if err != nil {
 		return "", "", err
 	}

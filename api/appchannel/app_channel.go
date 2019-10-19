@@ -10,6 +10,7 @@ import (
 
 var appChannelHolder = struct {
 	sync.RWMutex
+
 	channels map[string]*common.AppChannel
 }{channels: make(map[string]*common.AppChannel)}
 

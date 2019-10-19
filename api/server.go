@@ -5,7 +5,7 @@ import (
 	"github.com/simplexity-ckcclc/gochannel/api/appchannel"
 	"github.com/simplexity-ckcclc/gochannel/api/click"
 	api "github.com/simplexity-ckcclc/gochannel/api/common"
-	"github.com/simplexity-ckcclc/gochannel/api/handlers"
+	"github.com/simplexity-ckcclc/gochannel/api/handler"
 	"github.com/simplexity-ckcclc/gochannel/common"
 	"github.com/simplexity-ckcclc/gochannel/common/config"
 	"github.com/simplexity-ckcclc/gochannel/common/logger"
@@ -49,14 +49,14 @@ func router() *gin.Engine {
 
 	adGroup := router.Group("/ad")
 	{
-		adGroup.POST("/click", handlers.ClickHandler)
+		adGroup.POST("/click", handler.ClickHandler)
 	}
 
 	internalGroup := router.Group("/ad/internal")
 	internalGroup.Use(authRequired())
 	{
-		internalGroup.POST("/channel/evict", handlers.EvictChannelHandler)
-		internalGroup.POST("/channel/register", handlers.RegisterChannelHandler)
+		internalGroup.POST("/channel/evict", handler.EvictChannelHandler)
+		internalGroup.POST("/channel/register", handler.RegisterChannelHandler)
 	}
 	return router
 }

@@ -116,7 +116,7 @@ func (cb Callbacker) callback(info callbackInfo) {
 		return
 	}
 
-	// todo retry if fail
+	// todo : retry if fail
 	resp, err := http.Post(callbackUrl, "application/json", strings.NewReader(string(reqBody[:])))
 	if err != nil {
 		logger.MatchLogger.WithFields(logrus.Fields{
@@ -152,10 +152,10 @@ func (cb Callbacker) callback(info callbackInfo) {
 
 func (cb *Callbacker) getCallbackInfos(limit int) ([]callbackInfo, error) {
 	rows, err := cb.db.Query(`SELECT id, app_key, channel_id, device_id, click_time, activate_time from callback_info limit ?`, strconv.Itoa(limit))
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	var callbackInfos []callbackInfo
 	for rows.Next() {

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const _defaultMaxLifeTimeSecs = 30
+
 var (
 	DB       *sql.DB // todo should adopt an elegant way to share this var
 	EsClient *elastic.Client
@@ -22,7 +24,7 @@ func InitSqlClient() (*sql.DB, error) {
 
 	DB.SetMaxOpenConns(config.GetInt(config.DatabaseMaxOpenCons))
 	DB.SetMaxIdleConns(config.GetInt(config.DatabaseMaxIdleCons))
-	DB.SetConnMaxLifetime(1 * time.Minute)
+	DB.SetConnMaxLifetime(_defaultMaxLifeTimeSecs * time.Second)
 	return DB, err
 }
 
